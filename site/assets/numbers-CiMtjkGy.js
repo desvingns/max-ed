@@ -1,0 +1,4 @@
+function e(e){let t={0:[],1:[[.5,.5]],2:[[.28,.28],[.72,.72]],3:[[.25,.25],[.5,.5],[.75,.75]],4:[[.28,.28],[.72,.28],[.28,.72],[.72,.72]],5:[[.25,.25],[.75,.25],[.5,.5],[.25,.75],[.75,.75]],6:[[.28,.2],[.72,.2],[.28,.5],[.72,.5],[.28,.8],[.72,.8]]};if(t[e])return t[e].map(([e,t])=>({x:e,y:t}));let n=[];for(let t=0;t<e;t++)n.push({x:.14+t%5*.18,y:t<5?.33:.67});return n}function t(t,n=200,r=`#4D96FF`){let i=e(t).map(e=>`<circle cx="${e.x*100}" cy="${e.y*100}" r="${t>6?7:9}" fill="${r}"/>`).join(``);return`<div style="position:relative;width:${n}px;height:${n}px">
+    <div style="position:absolute;left:0;right:0;top:${n*.06}px;text-align:center;font:900 ${n*.52}px/1 var(--font);color:#3B2F4F">${t}</div>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="position:absolute;left:${n*.25}px;top:${n*.64}px;width:${n*.5}px;height:${n*.3}px">${i}</svg>
+  </div>`}export{t as n,e as t};
