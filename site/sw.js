@@ -1,6 +1,6 @@
 // Offline service worker: on install, precache every built file listed in precache.json
 // (written by the build), then serve cache-first. The whole game works without internet.
-const VERSION = 'v__BUILD__'
+const VERSION = 'v1790586738507'
 const CACHE = 'maxed-' + VERSION
 
 self.addEventListener('install', event => {
