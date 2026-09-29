@@ -58,10 +58,16 @@ function buildKit(x, def, meta) {
     if (!root || c.__kxGuard) return c
     c.__kxGuard = true
     const orig = c.emote.bind(c)
-    let n = 0
-    c.emote = async t => {
-      n++
-      try { return await orig(t) } finally { if (--n === 0 && k.alive) gsap.set(root, { clearProps: 'transform' }) }
+    // Эмоции идут строго по очереди (не более одной в ожидании): перекрывающиеся «корневые» жесты
+    // путают svgOrigin у gsap, и герой уезжает за экран. После серии — сбрасываем transform корня.
+    let active = null, queued = null
+    const start = t => (async () => {
+      try { return await orig(t) } finally { if (!queued && k.alive) gsap.set(root, { clearProps: 'transform' }) }
+    })().finally(() => { active = null })
+    c.emote = t => {
+      if (!active) { active = start(t); return active }
+      if (!queued) queued = active.then(() => { queued = null; active = start(t); return active })
+      return queued
     }
     return c
   }

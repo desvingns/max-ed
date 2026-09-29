@@ -26,7 +26,7 @@ const oilSpoonArt = () => {
     P('M118 50L248 44Q258 44 258 53Q258 62 248 64L118 68Z', '#DDE6F2') +
     `<clipPath id="${id}"><ellipse cx="66" cy="62" rx="60" ry="42"/></clipPath>` +
     E(66, 62, 60, 42, '#F4F6FC') +
-    `<g clip-path="url(#${id})"><rect x="0" y="20" width="140" height="84" fill="#FFF8EC"/><rect x="0" y="28.4" width="140" height="29.4" fill="#6BCB77" opacity=".42"/><rect class="oil" x="0" y="104" width="140" height="90" fill="#FFC93C"/></g>` +
+    `<g clip-path="url(#${id})"><rect x="0" y="20" width="140" height="84" fill="#FFF8EC"/><rect x="0" y="28.4" width="140" height="29.4" fill="#6BCB77" opacity=".8"/><rect class="oil" x="0" y="104" width="140" height="90" fill="#FFC93C"/></g>` +
     E(66, 62, 60, 42, 'none') + HL(36, 40, 14, 5, -25, 0.7))
 }
 
@@ -137,9 +137,11 @@ export default defineLevel({
       prompt: k.key('q_cut'), host: pyx,
       onCut: async (i, info) => { slicesT.push(info.slice.el); await k.sayNumber(i + 1) },
     })
-    g.to(resT.tail, { y: -40, opacity: 0, duration: 0.4 })
-    k.after(450, () => resT.clear())
-    await k.wait(500)
+    await tell(pyx, 'tail', 'laugh')
+    const pc = k.centerOf(pyx.el)
+    await k.play(g.to(resT.tail, { x: pc.x - 600 + 40, y: pc.y - 645 - 120, scale: 0.2, opacity: 0, duration: 0.6, ease: 'power2.in' }))
+    k.sfx('crunch')
+    resT.clear()
     const pileT = k.prop(pileHtml('tomatoSlice', 3, 78), PLATE_TOM.x + (STEP.x * 2) / 2, PLATE_TOM.y + (STEP.y * 2) / 2, 78 + STEP.x * 2, 78 - STEP.y * 2, { z: 0 })
     slicesT.forEach(s => s.remove())
     await tell(pyx, 'red3', 'cheer')
@@ -155,9 +157,9 @@ export default defineLevel({
       cuts: [0.2, 0.4, 0.6, 0.8], tol: 0.07, plate: PLATE_CUC, plateStep: STEP,
       onCut: async (i, info) => { slicesC.push(info.slice.el); await k.sayNumber(i + 1) },
     })
-    g.to(resC.tail, { y: -40, opacity: 0, duration: 0.4 })
-    k.after(450, () => resC.clear())
-    await k.wait(500)
+    g.to(resC.tail, { x: pc.x - 600 + 40, y: pc.y - 655 - 120, scale: 0.2, opacity: 0, duration: 0.6, ease: 'power2.in' })
+    k.after(650, () => resC.clear())
+    await k.wait(700)
     const pileC = k.prop(pileHtml('cucumberSlice', 4, 78), PLATE_CUC.x + (STEP.x * 3) / 2, PLATE_CUC.y + (STEP.y * 3) / 2, 78 + STEP.x * 3, 78 - STEP.y * 3, { z: 0 })
     slicesC.forEach(s => s.remove())
     await tell(pyx, 'green4', 'cheer')
@@ -207,8 +209,8 @@ export default defineLevel({
     fadeAway([plate], 0)
 
     // больше / меньше
-    const b3 = k.badge('3', 1180, 470, { size: 96, color: '#FF5A5F' })
-    const b4 = k.badge('4', 1320, 470, { size: 96, color: '#6BCB77' })
+    const b3 = k.badge('3', 1135, 468, { size: 92, color: '#FF5A5F' })
+    const b4 = k.badge('4', 1232, 468, { size: 92, color: '#6BCB77' })
     await k.choose({
       prompt: k.key('q_more'), host: pyx, skill: 'math:more',
       options: [
@@ -234,13 +236,13 @@ export default defineLevel({
 
     // ───── 5. ложка масла ─────
     bar.set(4)
-    const bottle = k.food('oil', 1040, 470, 84, { z: 12 })
-    const spoonEl = k.prop(oilSpoonArt(), 1238, 523, 220, 102, { z: 14 })
+    const bottle = k.food('oil', 957, 470, 84, { z: 12 })
+    const spoonEl = k.prop(oilSpoonArt(), 1150, 532, 190, 88, { z: 14 })
     const oilRect = spoonEl.querySelector('.oil')
     const setOil = v => oilRect.setAttribute('y', String(104 - v * 84))
     k.fromTo([bottle, spoonEl], { y: -200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' })
     await k.wait(650)
-    const stream = k.prop('<div style="width:100%;height:100%;border-radius:5px;background:repeating-linear-gradient(to bottom,#FFC93C 0 14px,#FFE27A 14px 24px)"></div>', 1184, 490, 10, 70, { z: 13 })
+    const stream = k.prop('<div style="width:100%;height:100%;border-radius:5px;background:repeating-linear-gradient(to bottom,#FFC93C 0 14px,#FFE27A 14px 24px)"></div>', 1104, 488, 10, 70, { z: 13 })
     g.set(stream, { opacity: 0, transformOrigin: '50% 0%' })
     const pourPose = () => g.to(bottle, { x: 50, y: -45, rotation: 105, duration: 0.3, ease: 'power2.out' })
     const restPose = () => g.to(bottle, { x: 0, y: 0, rotation: 0, duration: 0.3, ease: 'back.out(1.6)' })
@@ -257,7 +259,7 @@ export default defineLevel({
         restPose(); streamOff()
         k.sfx('yuck', { vol: 0.5 })
         for (let i = 0; i < 6; i++) {
-          const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFC93C"></div>', 1184 + k.rand(-50, 50), 540, 14, 14, { z: 15 })
+          const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFC93C"></div>', 1104 + k.rand(-50, 50), 540, 14, 14, { z: 15 })
           k.to(d, { y: k.rand(60, 120), opacity: 0, duration: 0.6, delay: i * 0.04, onComplete: () => d.remove() })
         }
         emote(pyx, 'surprised')
@@ -268,12 +270,12 @@ export default defineLevel({
     streamOff()
     await tell(pyx, 'oil_ok', 'cheer')
     // выливаем ложку в салат
-    await k.play(g.to(spoonEl, { x: 60, y: 30, duration: 0.4, ease: 'power2.inOut' }))
+    await k.play(g.to(spoonEl, { x: 150, y: 44, duration: 0.5, ease: 'power2.inOut' }))
     g.set(spoonEl, { transformOrigin: '25% 50%' })
     await k.play(g.to(spoonEl, { rotation: -38, duration: 0.35, ease: 'power2.out' }))
     k.sfx('pour', { vol: 0.8 })
     for (let i = 0; i < 8; i++) {
-      const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFC93C"></div>', 1246 + k.rand(-14, 14), 560, 12, 14, { z: 15 })
+      const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFC93C"></div>', 1252 + k.rand(-14, 14), 560, 12, 14, { z: 15 })
       k.to(d, { y: k.rand(40, 70), opacity: 0, duration: 0.5, delay: i * 0.05, onComplete: () => d.remove() })
     }
     g.to(oilRect, { attr: { y: 104 }, duration: 0.4 })

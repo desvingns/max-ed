@@ -1,5 +1,5 @@
 // Автопрогон ВСЕХ kx-уровней (быстрый режим). Печатает таблицу; скриншоты — в текущую папку.
-//   node tools/qa/run-all.mjs [--only=id1,id2] [--shots=3000,9000] [--conc=2] [--timeout=200]
+//   node tools/qa/run-all.mjs [--only=id1,id2] [--shots=3000,9000] [--conc=2] [--timeout=200] [--real]
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { pathToFileURL } from 'node:url'
 import path from 'node:path'
@@ -11,6 +11,7 @@ const shots = String(opt('shots', '3000,9000')).split(',').filter(Boolean).map(N
 const conc = Number(opt('conc', 2))
 const timeout = Number(opt('timeout', 200)) * 1000
 const base = opt('base', 'http://localhost:8123')
+const real = args.includes('--real')  // с настоящей озвучкой (без ?fastvoice) — проверяет mp3 и реальный темп
 
 const reg = await import(pathToFileURL(path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../site/assets/kx/registry.js')).href)
 const ids = (only ?? reg.levelIds)
@@ -21,7 +22,7 @@ async function run(id) {
   const errs = []
   page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 160)) })
   page.on('pageerror', e => errs.push('pageerror: ' + e.message.slice(0, 200)))
-  await page.goto(`${base}/index.html?fastvoice#/ep/${id}`)
+  await page.goto(`${base}/index.html${real ? '' : '?fastvoice'}#/ep/${id}`)
   const t0 = Date.now()
   let done = false, i = 0, stuck = 0, lastSig = ''
   while (Date.now() - t0 < timeout) {
