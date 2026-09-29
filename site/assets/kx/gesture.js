@@ -181,15 +181,8 @@ export function stir(k, center, o = {}) {
     const area = { x: center.x - radius * 1.7, y: center.y - radius * 1.7, w: radius * 3.4, h: radius * 3.4 }
     let total = 0, lastA = null, t0 = 0
     if (o.prompt) { k.setRepeat(() => void k.say(o.prompt, o.host ?? null)); k.say(o.prompt, o.host ?? null) }
-    // ручка кружится по окружности
-    const hint = idleHint(k, () => {
-      const h = { v: 0 }
-      const el = document.createElement('div')
-      const hand = fx.hand({ x: center.x + radius, y: center.y })
-      const tw = gsap.to(h, { v: Math.PI * 2, duration: 2, repeat: -1, ease: 'none', onUpdate: () => {} })
-      return () => { tw.kill(); hand.stop(); el.remove() }
-    })
-    const spoon = o.spoon
+    // подсказка: ручка ведёт по дуге сверху вниз
+    const hint = idleHint(k, wiggleHand({ x: center.x - radius, y: center.y - radius * 0.2 }, { x: center.x + radius, y: center.y + radius * 0.4 }))
     const finish = () => { tr.destroy(); hint.stop(); k.setRepeat(null); end(); resolve() }
     const add = (a, pos) => {
       if (lastA !== null) {
@@ -203,11 +196,9 @@ export function stir(k, center, o = {}) {
       lastA = a
       const p = Math.min(1, total / (turns * Math.PI * 2))
       o.onProgress?.(p, a)
-      if (spoon) {
-        const cx = center.x + Math.cos(a) * Math.min(radius * 0.8, Math.hypot(pos.x - center.x, pos.y - center.y))
-        const cy = center.y + Math.sin(a) * Math.min(radius * 0.8, Math.hypot(pos.x - center.x, pos.y - center.y))
-        gsap.to(spoon, { x: `+=${0}`, duration: 0 })
-        o.moveSpoon?.(cx, cy, a)
+      if (o.moveSpoon) {
+        const rr = Math.min(radius * 0.8, Math.hypot(pos.x - center.x, pos.y - center.y))
+        o.moveSpoon(center.x + Math.cos(a) * rr, center.y + Math.sin(a) * rr, a)
       }
       if (p >= 1 && k.alive) finish()
     }

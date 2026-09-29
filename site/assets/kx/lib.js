@@ -78,9 +78,10 @@ function buildKit(x, def, meta) {
 
   // ── речь ──
   /** Реплика героя (char) по короткому id этого уровня; emote — жест ('wave','cheer',…). */
-  k.tell = (char, id, emote) => k.line(char, k.key(id), emote)
+  const chk = key => { if (!hasLine(key)) console.error(`[kx:${def.id}] нет реплики ${key}`); return key }
+  k.tell = (char, id, emote) => k.line(char, chk(k.key(id)), emote)
   /** Реплика «за кадром» (сказочница). */
-  k.narrate = id => k.line(null, k.key(id))
+  k.narrate = id => k.line(null, chk(k.key(id)))
   /** Несколько реплик подряд одному герою. */
   k.tellAll = async (char, ids) => { for (const id of ids) await k.tell(char, id) }
   /** Существует ли реплика (для необязательных). */

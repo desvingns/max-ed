@@ -122,6 +122,25 @@ patch(
     "kx/registry.js",
 )
 
+
+# ── land: звёзды глав (доля пройденных уровней) и раскладка порталов пониже ──────
+patch(
+    land,
+    [
+        (
+            "function _(e){let t=/^\\/(game|ep)\\/([^/]+)/.exec(e.route);",
+            "function _(e){/*kxstars*/let c=/^\\/land\\/(kx-[\\w-]+)/.exec(e.route);if(c){let h=KXC.find(x=>x.id===c[1]);if(h){let s=h.levels.filter(l=>n.data.cartoonsSeen.includes(l.id)).length,tt=h.levels.length;return s?s>=tt?3:s>=tt/2?2:1:0}}let t=/^\\/(game|ep)\\/([^/]+)/.exec(e.route);",
+        ),
+        ("y:r%2?690:770,d:n", "y:r%2?715:795,d:n"),
+    ],
+    "kxstars",
+)
+
+# ── старые кухонные эпизоды возвращают в главу «Чудеса кухни» ────────────────
+for pref, ident in (("kitchen-kettle", "kitchen-kettle"), ("kitchen-freezer", "kitchen-freezer"), ("kitchen-omelet", "kitchen-omelet")):
+    f = find(pref)
+    patch(f, [(f"id:`{ident}`,kind:`science`,region:`kitchen`,", f"id:`{ident}`,kind:`science`,region:`kitchen`,next:`/land/kx-science`,")], "kx-science")
+
 # ── service worker / precache ────────────────────────────────────────────────
 def build_precache():
     files = ["./", "index.html", "manifest.webmanifest"]
