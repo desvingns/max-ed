@@ -154,7 +154,7 @@ export default defineLevel({
               q.remove()
               dishBubble = thought(card(DISH[e]))
               k.sfx('yum'); k.sparkle(470, 300, 6)
-              await tell(pyx, okId, 'cheer')
+              await tell(pyx, okId, 'jump')
             } else {
               k.sfx('yuck', { vol: 0.5 })
               const w = k.bubble(card(DISH[e]) + '<span class="emoji" style="font-size:40px"> 🤢</span>', 470, 300, { w: 230, h: 150, font: 64 })
@@ -274,7 +274,7 @@ export default defineLevel({
     jars.forEach(j => setDim(j, false))
     k.burst(900, 500, 10)
     await tell(pyx, 'sum', 'point')
-    await tell(pyx, 'bye', 'cheer')
+    await tell(pyx, 'bye', 'jump')
     k.burst(800, 420, 14)
   },
 })

@@ -382,7 +382,7 @@ export function dnd(k, o) {
         const t = (tries.get(it) ?? 0) + 1
         tries.set(it, t)
         audio.sfx('boing', { vol: 0.5 })
-        ctrls.get(it)?.home()
+        if (o.homeOnWrong !== false) ctrls.get(it)?.home()
         if (o.onWrong) await o.onWrong(it, z, t)
         if (t >= 2 && zoneFor(it)) { const stop = fx.pulse(zoneFor(it).el, '#FFFFFF'); k.after(2500, stop) }
       }

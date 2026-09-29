@@ -12,8 +12,8 @@ const JAR = 'M52 80L208 80L194 336Q193 352 177 352L83 352Q67 352 66 336Z'
 const PIVOT = { x: 222, y: 456 } // низ-право основания (точка наклона)
 const TILT = 30
 const HOME = [1055, 1165, 1275] // «дом» стаканов на столешнице
-const MARK = 0.62 // полоска на стакане
-const GOAL = [0.5, 0.72]
+const MARK = 0.6 // полоска на стакане
+const GOAL = [0.42, 0.78] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
 const GLASS_Y = 650
 
 let uid = 0
@@ -296,7 +296,7 @@ export default defineLevel({
         k.to(blender, { rotation: 0, duration: 0.4, ease: 'back.out(1.5)', overwrite: 'auto' })
       }
       const lv = await k.hold(blender, {
-        duration: 2.3, goal: GOAL, prompt: i === 0 ? k.key('q_pour') : null, host: pyx, sfx: null,
+        duration: 2.8, goal: GOAL, prompt: i === 0 ? k.key('q_pour') : null, host: pyx, sfx: null,
         onStart: () => { tilt(); stream.style.display = 'block' },
         onLevel: p => {
           p0 = p
@@ -316,7 +316,8 @@ export default defineLevel({
           k.tell(pyx, 'over', 'surprised')
         },
       })
-      poured += lv
+      poured += MARK
+      setGl(MARK); setMix(1 - poured / 1.9)
       k.sfx('pop')
       k.sparkle(HOME[i], GLASS_Y - 20, 4)
       await k.sayNumber(i + 1)

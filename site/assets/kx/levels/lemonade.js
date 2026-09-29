@@ -8,7 +8,7 @@ import { INK, svg, P, L, R, HL, SH, S } from '../art.js'
 const JUG = { x: 800, y: 530, w: 300, h: 380 }
 const BODY = 'M48 44L238 44L232 338Q231 356 213 356L73 356Q55 356 54 338Z'
 const MARK = 0.82 // «полоска»: сюда надо налить воду
-const GOAL = [0.72, 0.92]
+const GOAL = [0.66, 0.95] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
 const levelY = l => JUG.y - JUG.h / 2 + 350 - 290 * l // мировая y поверхности
 
 let uid = 0
@@ -115,7 +115,7 @@ export default defineLevel({
     const untilt = () => { stream.style.display = 'none'; k.to(bottle, { x: 0, y: 0, rotation: 0, duration: 0.4, ease: 'back.out(1.6)', overwrite: 'auto' }) }
     let misses = 0
     waterL = await k.hold(bottle, {
-      duration: 3.6, goal: GOAL, prompt: k.key('q_water'), host: pyx, sfx: null,
+      duration: 4.2, goal: GOAL, prompt: k.key('q_water'), host: pyx, sfx: null,
       onStart: () => { tilt(); stream.style.display = 'block' },
       onLevel: p => {
         setLevel(p, 0.1)
@@ -131,7 +131,8 @@ export default defineLevel({
         k.tell(pyx, 'over', 'surprised')
       },
     })
-    setLevel(waterL)
+    waterL = MARK
+    setLevel(waterL, 0.35)
     k.to(bottle, { opacity: 0, y: 60, duration: 0.4, onComplete: () => bottle.remove() })
     k.sparkle(795, levelY(waterL), 6)
     await k.tell(pyx, 'water_ok', 'cheer')

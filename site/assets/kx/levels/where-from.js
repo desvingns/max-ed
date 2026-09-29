@@ -276,7 +276,7 @@ export default defineLevel({
       onWrong: (it, z) => (z ? wrongLine(z) : null),
     })
 
-    await k.tell(chukh, 'full1', 'cheer')
+    await k.tell(chukh, 'full1', 'jump')
     await countCargo()
     k.burst(1100, 780, 10)
     await k.wait(300)
@@ -338,13 +338,13 @@ export default defineLevel({
       onWrong: (it, z) => (z ? wrongLine(z) : null),
     })
 
-    await k.tell(chukh, 'full2', 'cheer')
+    await k.tell(chukh, 'full2', 'jump')
     await countCargo()
     k.burst(1100, 780, 12)
     await k.tell(chukh, 'finale', 'happy')
     k.after(1200, () => closeRound(landEls))
     await Promise.all([drive(), k.wait(1600).then(() => k.narrate('sum'))])
-    await k.tell(chukh, 'bye', 'cheer')
+    await k.tell(chukh, 'bye', 'jump')
     k.burst(800, 420, 14)
   },
 })

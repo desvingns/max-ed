@@ -5,7 +5,7 @@ import { defineLevel, food, SIZE } from '../lib.js'
 import { INK, svg, P, L, F, E, C, R, HL, SH, S, circlePath, nid } from '../art.js'
 
 // ───────────────────────── геометрия таза (сцена 1600×1000) ─────────────────────────
-const TUB = { cx: 800, cy: 500, w: 720, h: 400 }
+const TUB = { cx: 800, cy: 520, w: 720, h: 400 }
 const TX = TUB.cx - TUB.w / 2, TY = TUB.cy - TUB.h / 2          // 440, 300
 const SURF = TY + 110                                             // уровень воды
 const BOTTOM = TY + 378                                           // дно (внутри)
@@ -73,9 +73,9 @@ const cardArt = float => {
 // предметы: art — SVG, w — ширина в тазу, rest — где плавает (сдвиг центра от уровня воды)
 const ITEMS = {
   duck: { float: true, art: duckArt, ar: 170 / 200, w: 130, rest: -14 },
-  apple: { float: true, art: () => food('apple'), ar: SIZE.apple[1] / SIZE.apple[0], w: 120, rest: 26, big: 168 },
+  apple: { float: true, art: () => food('apple'), ar: SIZE.apple[1] / SIZE.apple[0], w: 120, rest: 12, big: 168 },
   potato: { float: false, art: () => food('potato'), ar: SIZE.potato[1] / SIZE.potato[0], w: 140, big: 200 },
-  orange: { float: true, art: () => food('orange'), ar: SIZE.orange[1] / SIZE.orange[0], w: 124, rest: 30, big: 164 },
+  orange: { float: true, art: () => food('orange'), ar: SIZE.orange[1] / SIZE.orange[0], w: 124, rest: 16, big: 164 },
   grape: { float: false, art: grapeArt, ar: 116 / 110, w: 96, big: 130 },
   egg: { float: false, art: () => food('egg'), ar: SIZE.egg[1] / SIZE.egg[0], w: 78, big: 108 },
 }

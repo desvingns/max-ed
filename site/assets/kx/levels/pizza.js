@@ -81,6 +81,16 @@ const cheeseMoundArt = () => svg(260, 160,
   S('M40 56C46 26 92 12 130 12C168 12 214 26 220 56C196 68 64 68 40 56Z', '#FFE066', '#F2B824') +
   [[84, 38, 10], [130, 26, -20], [172, 40, 30], [106, 52, 60], [154, 52, -40], [126, 44, 5]].map(([x, y, r]) => E(x, y, 12, 3.4, '#FFF0A0', { sw: 0, rot: r })).join(''))
 
+/** stepsBar с обходом бага тулкита: gsap.from по детям с CSS-transition на transform «залипает» (последние иконки остаются выше). */
+function stepsBar(k, icons) {
+  const bar = k.stepsBar(icons)
+  const kids = [...bar.el.children]
+  k.gsap.killTweensOf(kids)
+  k.gsap.set(kids, { clearProps: 'transform' })
+  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return bar
+}
+
 export default defineLevel({
   id: 'pizza',
   async run(k) {
@@ -88,7 +98,7 @@ export default defineLevel({
     const L0 = k.layout
     k.kitchenBg()
     const pyx = k.pyx({ x: 230 })
-    const bar = k.stepsBar(['🥖', '🍅', '🧀', '🌭', '🔥', '🔪', '🍽️'])
+    const bar = stepsBar(k, ['🥖', '🍅', '🧀', '🌭', '🔥', '🔪', '🍽️'])
     const board = k.food('board', 850, 700, 840, { z: 3 })
     k.fromTo(board, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' })
     const clamp01 = v => Math.max(0, Math.min(1, v))

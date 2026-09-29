@@ -2,7 +2,6 @@
 import { defineLevel, food, SIZE } from '../lib.js'
 import { kitchen } from '../deps.js'
 import { svg, P, C, R, HL, SH, S, rounded } from '../art.js'
-import { liveSplit } from './_split.js'
 
 // размеры «коробок» для cutLinear (он берёт пропорции из SIZE)
 SIZE.carrotWide = [444, 120]
@@ -67,12 +66,6 @@ export default defineLevel({
     k.fromTo(board, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' })
 
     // ── помощники ──
-    /** «вырезка» [a,b] (доли по ширине) из картинки art, центр (cx,cy), размер W×H — кусок как самостоятельный элемент */
-    const sliceOf = (art, cx, cy, W, H) => (a, b) => {
-      const el = k.prop('', cx - W / 2 + ((a + b) / 2) * W, cy, (b - a) * W, H, { z: 7 })
-      el.innerHTML = `<div style="position:absolute;left:${-a * W}px;top:0;width:${W}px;height:${H}px;clip-path:inset(0 ${(1 - b) * 100}% 0 ${a * 100}%)">${art()}</div>`
-      return el
-    }
     const newCarrot = () => {
       const el = k.prop(carrotWide(), CAR.x, CAR.y, CW, CH, { z: 6 })
       k.fromTo(el, { y: -420, rotation: -10, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.6, ease: 'bounce.out' })
@@ -127,8 +120,7 @@ export default defineLevel({
           // первая «кружка» — зелёная макушка: она достаётся Хрюне
           info.slice.done.kill()
           s.innerHTML = leafArt()
-          k.tell(pyx, 'top', 'point')
-          await feed(s, pig)
+          await Promise.all([k.tell(pyx, 'top', 'point'), feed(s, pig)])
           await k.tell(pig, 'top_pig')
         } else {
           circles.push(s)
@@ -154,22 +146,26 @@ export default defineLevel({
     await k.tell(pyx, 'sticks', 'point')
     const carrot2 = newCarrot()
     await k.wait(700)
-    const sv2 = liveSplit(k, { render: sliceOf(carrotWide, CAR.x, CAR.y, CW, CH), gap: 46 })
     const res2 = await k.cutLinear({
       food: 'carrotWide', el: carrot2, at: CAR, width: CW, mode: 'split', cuts: [0.34, 0.67], tol: 0.07, gap: 46,
       prompt: k.key('q_thick'), host: pyx,
       onMiss: n => { if (n % 3 === 1) k.tell(pyx, 'miss') },
-      onCut: async (i, info) => { sv2.update(info); await k.wait(400) },
+      onCut: async () => { await k.wait(400) },
     })
-    const chunks = sv2.pieces.map(p => p.el)
-    res2.clear()
+    const chunks = res2.pieces.map(p => p.el)
     const mid = chunks[1]
-    await k.tapOnEl(mid, { prompt: k.key('q_pick'), host: pyx })
+    // тап по среднему куску: небольшая невидимая «кнопка», чтобы подсветка обвела именно кусок
+    const tapper = k.prop('', CAR.x + 4, CAR.y, 230, 150, { z: 20 })
+    tapper.style.borderRadius = '50%'
+    await k.tapOnEl(tapper, { prompt: k.key('q_pick'), host: pyx })
+    tapper.remove()
     // остальное — курочке, средний кусок «ложится плашмя»
-    k.tell(pyx, 'scraps', 'point')
-    Promise.all([feed(chunks[0], hen), feed(chunks[2], hen)])
-    const c0 = k.centerOf(mid)
-    await k.play(gsap.to(mid, { x: `+=${800 - c0.x}`, y: `+=${590 - c0.y}`, duration: 0.5, ease: 'power2.inOut' }))
+    const flatten = async () => {
+      await Promise.all([feed(chunks[0], hen), feed(chunks[2], hen)])
+      const c0 = k.centerOf(mid)
+      await k.play(gsap.to(mid, { x: `+=${800 - c0.x}`, y: `+=${590 - c0.y}`, duration: 0.5, ease: 'power2.inOut' }))
+    }
+    await Promise.all([k.tell(pyx, 'scraps', 'point'), flatten()])
     const plank = k.prop(plankArt(), 800, 590, 300, 240, { z: 6 })
     gsap.set(plank, { scale: 0.6, opacity: 0 })
     k.sfx('whoosh')
@@ -179,21 +175,19 @@ export default defineLevel({
     const eyes = k.bubble('👀', 590, 470, { w: 150, h: 140, font: 62, tail: 'right' })
     await k.tell(pyx, 'flat', 'point')
     fadeOut([eyes])
-    const sv3 = liveSplit(k, { render: sliceOf(plankArt, 800, 590, 300, 240), gap: 26 })
     const res3 = await k.cutLinear({
       food: 'carrotPlank', el: plank, at: { x: 800, y: 590 }, width: 300, mode: 'split', cuts: [0.25, 0.5, 0.75], tol: 0.1, gap: 26,
       prompt: k.key('q_sticks'), host: pyx,
       onMiss: n => { if (n % 3 === 1) k.tell(pyx, 'miss') },
-      onCut: async (i, info) => { sv3.update(info); await k.wait(300) },
+      onCut: async () => { await k.wait(300) },
     })
-    const sticks = sv3.pieces.map(p => {
+    const sticks = res3.pieces.map(p => {
       const w = (p.b - p.a) * 300
-      const cx = 650 + ((p.a + p.b) / 2) * 300 + p.x
+      const cx = 650 + ((p.a + p.b) / 2) * 300 + (Number(gsap.getProperty(p.el, 'x')) || 0)
       const el = k.prop(stickArt(), cx, 590, Math.round(w * 0.9), 236, { z: 7 })
       gsap.from(el, { scale: 0.7, duration: 0.35, ease: 'back.out(2.5)' })
       return el
     })
-    sv3.clear()
     res3.clear()
     k.sfx('pop')
     k.burst(800, 470, 8)
@@ -219,14 +213,12 @@ export default defineLevel({
     k.fromTo(bundle, { y: -400, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'bounce.out' })
     k.sfx('boing', { vol: 0.5 })
     await k.wait(700)
-    const sv4 = liveSplit(k, { render: sliceOf(bundleArt, 800, 600, 320, 164), gap: 22 })
     const res4 = await k.cutLinear({
       food: 'carrotBundle', el: bundle, at: { x: 800, y: 600 }, width: 320, mode: 'split', cuts: [0.25, 0.5, 0.75], tol: 0.1, gap: 22,
       prompt: k.key('q_cubes'), host: pyx,
       onMiss: n => { if (n % 3 === 1) k.tell(pyx, 'miss') },
-      onCut: async (i, info) => { sv4.update(info); await k.wait(300) },
+      onCut: async () => { await k.wait(300) },
     })
-    sv4.clear()
     res4.clear()
     const cubes = []
     for (let j = 0; j < 4; j++) for (let r = 0; r < 2; r++) {

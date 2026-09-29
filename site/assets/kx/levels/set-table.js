@@ -124,6 +124,9 @@ export default defineLevel({
         },
         onWrong: async (it, z) => {
           if (!z) return
+          // подсказываем правильное место мигающим кольцом
+          const hint = zones.find(q => q.type === it.type && !q.filled)
+          if (hint) { const stop = k.fx.pulse(hint.el, '#FFFFFF'); k.after(3500, stop) }
           if (it.type === z.type) { await k.tell(pyx, 'has', 'shake'); return }
           if (it.type === 'fork' && z.type === 'spoon') { await k.tell(pyx, 'fork_left', 'point'); return }
           if (it.type === 'spoon' && z.type === 'fork') { await k.tell(pyx, 'spoon_right', 'point'); return }
@@ -187,7 +190,10 @@ export default defineLevel({
       },
     })
     const zones2spoon = r2.zones.find(z => z.type === 'spoon')
+    // над гостями: у двоих ложка есть, у третьего — нет
+    const ghost = SEATS.slice(0, 3).map((sx, i) => k.bubble(i < 2 ? '🥄' : '❓', sx, 250, { w: 150, h: 130, font: 66 }))
     await k.choose({ prompt: k.key('q_missing'), host: pyx, options: [num(2, '#FF8FC8', false), num(1, '#FFD93D', true), num(3, '#62C6FF', false)] })
+    ghost.forEach(g => k.to(g, { scale: 0, opacity: 0, duration: 0.25, onComplete: () => g.remove() }))
     // Хапчик возвращает
     {
       const from = { x: 1800, y: 430 }

@@ -13,9 +13,9 @@ export function installStyle() {
   .kxart{display:block;overflow:visible}
   .kx-food{position:absolute}
   .kx-steps{position:absolute;left:0;right:0;top:20px;display:flex;justify-content:center;gap:14px;z-index:70;pointer-events:none}
-  .kx-step{width:82px;height:82px;border-radius:50%;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.16),inset 0 0 0 6px #E0D6EC;display:grid;place-items:center;font-size:44px;line-height:1;transition:transform .3s,box-shadow .3s,opacity .3s;opacity:.85;position:relative}
+  .kx-step{width:82px;height:82px;border-radius:50%;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.16),inset 0 0 0 6px #E0D6EC;display:grid;place-items:center;font-size:44px;line-height:1;transition:scale .3s,box-shadow .3s,opacity .3s;opacity:.85;position:relative;scale:1}
   .kx-step .emoji{font-size:44px}
-  .kx-step.now{transform:scale(1.22);box-shadow:0 8px 0 rgba(0,0,0,.18),inset 0 0 0 7px #FFB703;opacity:1}
+  .kx-step.now{scale:1.22;box-shadow:0 8px 0 rgba(0,0,0,.18),inset 0 0 0 7px #FFB703;opacity:1}
   .kx-step.done{box-shadow:0 6px 0 rgba(0,0,0,.16),inset 0 0 0 6px #6BCB77;opacity:.75}
   .kx-step.done::after{content:"✓";position:absolute;right:-8px;bottom:-8px;width:32px;height:32px;border-radius:50%;background:#6BCB77;color:#fff;font:900 22px/32px var(--font);text-align:center;border:3px solid #fff}
   .kx-badge{position:absolute;display:grid;place-items:center;font:900 64px/1 var(--font);color:#3B2F4F;background:#fff;border-radius:50%;box-shadow:0 8px 0 rgba(0,0,0,.16),inset 0 0 0 7px #FFD166;z-index:66;pointer-events:none}
@@ -33,7 +33,7 @@ export function stepsBar(k, icons, o = {}) {
   el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
   k.root.appendChild(el)
   const items = [...el.children]
-  gsap.from(items, { y: -120, duration: 0.5, ease: 'back.out(2)', stagger: 0.06 })
+  gsap.fromTo(items, { y: -120 }, { y: 0, duration: 0.5, ease: 'back.out(2)', stagger: 0.06, clearProps: 'transform' })
   return {
     el,
     set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },

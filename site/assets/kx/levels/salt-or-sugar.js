@@ -2,7 +2,7 @@
 // а баночку без этикетки не пробуем — спрашиваем взрослого.
 import { defineLevel } from '../lib.js'
 import { kitchen } from '../deps.js'
-import { INK, svg, P, F, R, C, SH, S, HL } from '../art.js'
+import { svg, P, F, R, C, SH, S, HL } from '../art.js'
 
 /** Кучка одинаковых белых крупинок (для «пузыря сравнения»). */
 const crystals = () => {

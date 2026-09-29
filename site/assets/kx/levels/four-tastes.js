@@ -2,7 +2,7 @@
 // затем малыш раскладывает угощения по тарелкам с мордочками вкусов: сладкое, солёное, кислое, горькое.
 import { defineLevel } from '../lib.js'
 import { kitchen } from '../deps.js'
-import { INK, svg, P, L, F, E, C, R, HL, SH, S, circlePath, ellipsePath, rounded, capsule } from '../art.js'
+import { INK, svg, P, L, E, C, R, HL, SH, S, circlePath, ellipsePath, rounded, capsule } from '../art.js'
 
 // ───────────────────────── свои спрайты ─────────────────────────
 const heart = (cx, cy, s, fill) =>
@@ -186,7 +186,7 @@ export default defineLevel({
       },
       sour: async () => {
         k.sfx('yuck', { vol: 0.5 })
-        const zoom = k.camera({ x: 800, y: 540, scale: 1.35 }, 0.5)
+        const zoom = k.camera({ x: 800, y: 540, scale: 1.28 }, 0.5)
         await zoom
         k.to(ham.el, { scaleX: 0.9, scaleY: 1.06, yoyo: true, repeat: 5, duration: 0.1, transformOrigin: '50% 100%' })
         ham.emote('shake')
@@ -198,7 +198,7 @@ export default defineLevel({
       },
       bitter: async () => {
         k.sfx('yuck')
-        const zoom = k.camera({ x: 800, y: 540, scale: 1.35 }, 0.5)
+        const zoom = k.camera({ x: 800, y: 540, scale: 1.28 }, 0.5)
         await zoom
         ham.emote('sad')
         const off = faceBubble('bitter', 1050, 400)
@@ -230,7 +230,7 @@ export default defineLevel({
     const zones = KINDS.map((kind, i) => {
       const el = k.prop(
         `<div style="position:relative;width:100%;height:100%;border-radius:40px;background:rgba(255,255,255,.92);box-shadow:inset 0 0 0 10px ${COLORS[kind]},0 10px 0 rgba(0,0,0,.14)"><div style="position:absolute;left:50%;top:8px;width:92px;height:92px;transform:translateX(-50%)">${face(kind)}</div></div>`,
-        400 + i * 240, 872, 220, 200, { z: 3 })
+        400 + i * 240, 846, 220, 200, { z: 3 })
       return { id: kind, kind, el, n: 0 }
     })
     k.popIn(zones.map(z => z.el), 0.25)
@@ -242,7 +242,7 @@ export default defineLevel({
     for (const [r, round] of B_ROUNDS.entries()) {
       if (r === 1) await k.tell(pyx, 'round2', 'cheer')
       const xs = [520, 760, 1000]
-      const items = k.shuffle(round).map((it, i) => ({ ...it, el: make(it.id, xs[i], 690, it.w, 20) }))
+      const items = k.shuffle(round).map((it, i) => ({ ...it, el: make(it.id, xs[i], 668, it.w, 20) }))
       await k.play(k.gsap.fromTo(items.map(i => i.el), { y: -300, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' }))
       await k.dnd({
         items, zones,

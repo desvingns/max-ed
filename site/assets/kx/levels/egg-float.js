@@ -1,7 +1,7 @@
 // «Яйцо-поплавок» — в простой воде яйцо тонет; насыпаем соль ложками (считаем), размешиваем — яйцо всплывает.
 // Финал: в солёном море легко держаться на воде — Щёчкин на надувном круге.
 import { defineLevel, food } from '../lib.js'
-import { INK, svg, P, L, C, E, R, HL, SH, S, ellipsePath, nid } from '../art.js'
+import { INK, svg, P, L, C, E, R, SH, S, ellipsePath, nid } from '../art.js'
 
 // ───────────────────────── стакан (как в salt-melts, вода повыше) ─────────────────────────
 const GW = 280, GH = 380

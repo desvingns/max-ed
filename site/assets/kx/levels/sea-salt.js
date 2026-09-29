@@ -2,9 +2,13 @@
 // вода испаряется облачками, а соль остаётся; сгребаем её граблями, Чухтик везёт соль на кухню, Пых фасует её в солонку.
 import { defineLevel } from '../lib.js'
 import { kitchen } from '../deps.js'
-import { INK, svg, P, L, F, E, C, R, HL, SH, S, circlePath, ellipsePath, rounded, nid } from '../art.js'
+import { INK, svg, P, L, E, C, R, HL, SH, S, circlePath, nid } from '../art.js'
 
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+
+/** Парусник (отдельным спрайтом — качается на волнах). */
+const boatArt = () => svg(180, 190,
+  `<g transform="translate(90 120)">${P('M-70 0L70 0L48 40L-48 40Z', '#FF5A5F', { sw: 5 })}${L('M0 0L0 -110', INK, 6)}${P('M6 -104L6 -12L70 -12Z', '#FFFFFF', { sw: 5 })}${P('M-6 -100L-6 -12L-54 -12Z', '#FFE066', { sw: 5 })}</g>`)
 
 // ───────────────────────── фон: небо, море, берег, каналы, рельсы ─────────────────────────
 const PATHS = { main: 'M800 640L800 712', left: 'M800 664L460 664L460 712', right: 'M800 664L1140 664L1140 712' }
@@ -12,7 +16,7 @@ const PATHS = { main: 'M800 640L800 712', left: 'M800 664L460 664L460 712', righ
 const landBg = () => {
   const a = nid('sk'), b = nid('sea')
   const wave = (y, x0, n) => Array.from({ length: n }, (_, i) => `M${x0 + i * 180} ${y}q45 -20 90 0`).join('')
-  const sleepers = Array.from({ length: 22 }, (_, i) => R(-20 + i * 80, 940, 46, 26, 4, '#A9793F', { sw: 4 })).join('')
+  const sleepers = Array.from({ length: 22 }, (_, i) => R(-20 + i * 80, 906, 46, 26, 4, '#A9793F', { sw: 4 })).join('')
   return svg(1600, 1000,
     `<defs><linearGradient id="${a}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ED4FF"/><stop offset="1" stop-color="#E4F6FF"/></linearGradient>` +
     `<linearGradient id="${b}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4DB4FA"/><stop offset="1" stop-color="#3596EE"/></linearGradient></defs>` +
@@ -21,15 +25,13 @@ const landBg = () => {
     `<rect x="-10" y="320" width="1620" height="240" fill="url(#${b})"/>` +
     `<path d="M-10 322Q40 306 90 322T190 322T290 322T390 322T490 322T590 322T690 322T790 322T890 322T990 322T1090 322T1190 322T1290 322T1390 322T1490 322T1590 322" fill="none" stroke="#fff" stroke-width="6" opacity=".7"/>` +
     `<path d="${wave(390, 60, 9)}${wave(470, 150, 9)}" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".45"/>` +
-    // парусник
-    `<g transform="translate(360 380)">${P('M-70 0L70 0L48 40L-48 40Z', '#FF5A5F', { sw: 5 })}${L('M0 0L0 -110', INK, 6)}${P('M6 -104L6 -12L70 -12Z', '#FFFFFF', { sw: 5 })}${P('M-6 -100L-6 -12L-54 -12Z', '#FFE066', { sw: 5 })}</g>` +
     `<path d="M-10 548Q60 530 130 548T270 548T410 548T550 548T690 548T830 548T970 548T1110 548T1250 548T1390 548T1530 548T1670 548L1670 1010L-10 1010Z" fill="#FFE3A6" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>` +
     `<g fill="#F2C878">${[[100, 660], [220, 900], [560, 610], [700, 900], [980, 620], [1300, 610], [1500, 700], [1420, 900], [150, 980]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7"/>`).join('')}</g>` +
     // канавки (сухие) — по ним потечёт вода
     Object.values(PATHS).map(d => `<path d="${d}" fill="none" stroke="${INK}" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>`).join('') +
     Object.values(PATHS).map(d => `<path d="${d}" fill="none" stroke="#D9B57A" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>`).join('') +
     // рельсы
-    sleepers + L('M-20 946L1620 946', INK, 12) + L('M-20 946L1620 946', '#B8C0CC', 6) + L('M-20 962L1620 962', INK, 12) + L('M-20 962L1620 962', '#8C95B4', 6))
+    sleepers + L('M-20 912L1620 912', INK, 12) + L('M-20 912L1620 912', '#B8C0CC', 6) + L('M-20 928L1620 928', INK, 12) + L('M-20 928L1620 928', '#8C95B4', 6))
 }
 
 /** Вода в канавках: рисуется по мере того, как держат колесо (stroke-dashoffset). */
@@ -101,7 +103,7 @@ const shakerArt = () => {
 }
 const SHAKER_MAX = 190 // px внутри 250-пиксельного вьюбокса
 
-export const ART = { landBg, panHTML, sunArt, rakeArt, pileArt, wagonArt, sackArt, shakerArt, cloudCard }
+export const ART = { boatArt, landBg, panHTML, sunArt, rakeArt, pileArt, wagonArt, sackArt, shakerArt, cloudCard }
 
 export default defineLevel({
   id: 'sea-salt',
@@ -112,6 +114,9 @@ export default defineLevel({
     const emoji = (e, size = 100) => `<span class="emoji" style="font-size:${size}px;line-height:1">${e}</span>`
 
     // ── сцена: канавки с водой, шлюз, бассейны ──
+    const boat = k.prop(boatArt(), 360, 395, 180, 190, { z: 1 })
+    boat.style.pointerEvents = 'none'
+    k.to(boat, { y: 9, rotation: 3, yoyo: true, repeat: -1, duration: 1.9, ease: 'sine.inOut' })
     const flow = k.prop(flowHTML(), 800, 500, 1600, 1000, { z: 2 })
     flow.style.pointerEvents = 'none'
     const pans = [460, 800, 1140].map(x => k.prop(panHTML(), x, 780, PAN_W, PAN_H, { z: 3 }))
@@ -122,11 +127,13 @@ export default defineLevel({
     const sun = k.prop(sunArt(), 1180, 170, 160, 160, { z: 14 })
     const dots = [1120, 1180, 1240].map(x => k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 5px #FFB938,0 4px 0 rgba(0,0,0,.15)"></div>', x, 290, 40, 40, { z: 14 }))
     gsap.set([plank, posts, wheel, sun, ...dots], { opacity: 0 })
+    ;[plank, posts, ...dots].forEach(e => { e.style.pointerEvents = 'none' })
     gsap.set(pans, { opacity: 0 })
     const night = k.prop('<div style="width:100%;height:100%;background:#1B2B6B"></div>', 800, 500, 1600, 1000, { z: 55 })
     night.style.pointerEvents = 'none'
     gsap.set(night, { opacity: 0 })
     const moon = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFF3B0;box-shadow:inset -14px -6px 0 #F2D874,0 0 40px #FFF3B0"></div>', 1180, 170, 90, 90, { z: 56 })
+    moon.style.pointerEvents = 'none'
     gsap.set(moon, { opacity: 0 })
 
     // ── вступление ──
@@ -155,6 +162,8 @@ export default defineLevel({
       onLevel: p => setFlow(p),
     })
     setFlow(1)
+    k.to(plank, { y: 0, duration: 0.6, ease: 'bounce.out' }) // шлюз закрываем, вода осталась в бассейнах
+    k.to(flow, { opacity: 0, duration: 1.6, delay: 0.6 })
     k.sfx('splash', { vol: 0.5 })
     k.sparkle(800, 780, 8)
     ham.emote('cheer')
@@ -218,7 +227,7 @@ export default defineLevel({
 
     // ── 4. сгребаем соль граблями ──
     const zone = k.prop('', 800, 780, 1000, 170, { z: 7 })
-    const pile = k.prop(pileArt(), 800, 872, 240, 139, { z: 9 })
+    const pile = k.prop(pileArt(), 1180, 846, 240, 139, { z: 9 })
     gsap.set(pile, { scale: 0, transformOrigin: '50% 100%' })
     const rake = k.prop(rakeArt(), 1420, 800, 90, 320, { z: 20 })
     gsap.set(rake, { rotation: -14 })
@@ -234,13 +243,13 @@ export default defineLevel({
     })
     ps.forEach(s => { s.style.opacity = '0' })
     k.to(pile, { scale: 1, duration: 0.3 })
-    k.to(rake, { x: 700 - r0.x, y: 820 - r0.y, opacity: 0, duration: 0.5, onComplete: () => rake.remove() })
-    k.sparkle(800, 860, 8)
+    k.to(rake, { x: 1050 - r0.x, y: 810 - r0.y, opacity: 0, duration: 0.5, onComplete: () => rake.remove() })
+    k.sparkle(1180, 830, 8)
     await k.tell(ham, 'pile', 'cheer')
 
     // ── 5. приезжает Чухтик ──
-    const chukh = k.guest('chukh', 2120, 955, { size: 260, face: 'left' })
-    const wagon = k.prop(wagonArt(), 2400, 870, 290, 190, { z: 10 })
+    const chukh = k.guest('chukh', 2120, 921, { size: 260, face: 'left' })
+    const wagon = k.prop(wagonArt(), 2400, 836, 290, 190, { z: 10 })
     await k.tell(ham, 'train', 'point')
     k.sfx('whoosh')
     await k.play(gsap.to([chukh.el, wagon], { x: '-=1600', duration: 2.4, ease: 'power2.out' }))
@@ -250,7 +259,7 @@ export default defineLevel({
     const wl = wagon.querySelector('.load')
     const wc = k.centerOf(wagon)
     k.sfx('plop')
-    await k.play(gsap.to(pile, { x: wc.x - 800, y: wc.y - 872 - 40, scale: 0.55, duration: 0.6, ease: 'power2.inOut' }))
+    await k.play(gsap.to(pile, { x: wc.x - 1180, y: wc.y - 846 - 40, scale: 0.55, duration: 0.6, ease: 'power2.inOut' }))
     gsap.to(pile, { opacity: 0, duration: 0.2 })
     gsap.to(wl, { opacity: 1, duration: 0.3 })
     k.burst(wc.x, wc.y - 80, 8)
@@ -260,7 +269,7 @@ export default defineLevel({
 
     // ── 6. на кухне: Пых фасует соль в солонку ──
     const kb = k.kitchenBg()
-    gsap.to([seaBg, flow, ...pans, plank, posts, wheel, sun, ...dots, pile], { opacity: 0, duration: 0.8, onComplete: () => [flow, ...pans, plank, posts, wheel, sun, ...dots, pile, wagon].forEach(e => e.remove()) })
+    gsap.to([seaBg, boat, flow, ...pans, plank, posts, wheel, sun, ...dots, pile], { opacity: 0, duration: 0.8, onComplete: () => [boat, flow, ...pans, plank, posts, wheel, sun, ...dots, pile, wagon].forEach(e => e.remove()) })
     ham.moveTo({ x: 1400, y: 960 })
     const pyx = k.pyx({ x: 250 })
     k.popIn(pyx.el)

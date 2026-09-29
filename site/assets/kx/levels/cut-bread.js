@@ -94,7 +94,7 @@ export default defineLevel({
       // редкий случай: ломтики уже почти ровные — раздаём поровну
       await k.tell(pyx, 'lucky', 'cheer')
       const eaters = [busya, busya, pyx, hamster, hamster]
-      k.tell(pyx, 'lucky_share', 'point')
+      await k.tell(pyx, 'lucky_share', 'point')
       for (let i = 0; i < pieces.length; i++) {
         k.sayNumber(i + 1)
         await feed(pieces[i].el, eaters[i])
@@ -154,7 +154,7 @@ export default defineLevel({
       const even = finishPieces(sv2, res2)
       k.burst(LOAF.x, LOAF.y - 120, 8)
       await k.tell(pyx, 'even_ok', 'cheer')
-      k.tell(pyx, 'even_share', 'point')
+      await k.tell(pyx, 'even_share', 'point')
       const eaters = [busya, busya, hamster, hamster]
       for (let i = 0; i < even.length; i++) {
         k.sayNumber(i + 1)

@@ -37,8 +37,8 @@ const pancakeArt = golden =>
 const doughArt = () =>
   svg(220, 140, SH(110, 134, 84, 5) + S('M20 84C8 42 60 14 112 16C172 14 214 46 204 88C198 124 150 134 108 132C60 134 26 120 20 84Z', '#FFEBC8', '#EFCE9C', { extra: '<circle cx="70" cy="60" r="4" fill="#fff" opacity=".8"/><circle cx="140" cy="46" r="3" fill="#fff" opacity=".8"/><circle cx="168" cy="92" r="4" fill="#fff" opacity=".8"/><circle cx="96" cy="100" r="3" fill="#fff" opacity=".8"/>' }) + HL(70, 44, 26, 8, -14, 0.6))
 
-/** Карточка k.choose: у высоких рисунков процентная высота svg не работает (строка grid — auto), поэтому даём явный размер. */
-const cardArt = html => `<div style="width:196px;height:196px;display:grid;place-items:center">${html}</div>`
+/** Карточка k.choose: правило `.ep-card svg{height:80%}` не работает у высоких рисунков (родитель без высоты) — даём svg явный размер. */
+const cardArt = (html, box = 168) => html.replace(/<svg/, `<svg style="width:${box}px;height:${box}px"`)
 
 const drop = (color, size = 14) => `<div style="width:100%;height:100%;border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:${color};box-shadow:inset -3px -3px 0 rgba(0,0,0,.12)"></div>`
 
@@ -406,8 +406,8 @@ export default defineLevel({
       good: {
         id: 'colander', art: cardArt(food('colander')),
         run: async s => {
-          const c = k.food('colander', 1040, 540, 300, { z: 7 })
-          const basin = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#9BD8F7;box-shadow:0 0 0 5px #3B2F4F;opacity:0"></div>', 1040, 692, 300, 34, { z: 5 })
+          const c = k.food('colander', 1110, 540, 280, { z: 7 })
+          const basin = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#9BD8F7;box-shadow:0 0 0 5px #3B2F4F;opacity:0"></div>', 1110, 692, 300, 34, { z: 5 })
           k.gsap.set(c, { scale: 0 })
           await k.play(k.gsap.to(c, { scale: 1, duration: 0.4, ease: 'back.out(2)' }))
           const potEl = s.pot
@@ -415,15 +415,17 @@ export default defineLevel({
           tl.to(potEl, { x: 300, y: -110, rotation: 52, duration: 0.8, ease: 'power2.inOut' })
             .call(() => {
               k.sfx('pour')
-              k.to(s.pasta, { x: 420, y: -60, rotation: 200, duration: 0.6, ease: 'power2.in', stagger: 0.12 })
-              for (let i = 0; i < 3; i++) k.after(700 + i * 120, () => fall(830 + i * 8, 470, 220, '#7CC8F5', 5, { spread: 8, size: 13, dur: 0.5, gap: 0.05 }))
-              k.to(basin, { opacity: 1, duration: 0.6, delay: 0.8 })
-              for (let i = 0; i < 5; i++) k.after(1300 + i * 140, () => fall(1040 + k.rand(-70, 70), 640, 40, '#7CC8F5', 2, { size: 12, dur: 0.4 }))
+              // макароны (и вода) летят из кастрюли в дуршлаг
+              s.pasta.forEach((p, i) => k.timeline({ delay: i * 0.15 })
+                .to(p, { x: 400 + i * 40, y: -95, rotation: 160, duration: 0.5, ease: 'power2.out' })
+                .to(p, { x: 500 + i * 46, y: 26 + i * 4, rotation: 320, duration: 0.4, ease: 'power2.in' }))
+              for (let i = 0; i < 3; i++) k.after(600 + i * 140, () => fall(900 + i * 20, 470, 190, '#7CC8F5', 5, { spread: 10, size: 13, dur: 0.45, gap: 0.05 }))
+              k.to(basin, { opacity: 1, duration: 0.6, delay: 1 })
+              for (let i = 0; i < 6; i++) k.after(1100 + i * 140, () => fall(1110 + k.rand(-70, 70), 640, 46, '#7CC8F5', 2, { size: 12, dur: 0.4 }))
             })
-            .to({}, { duration: 1.3 })
+            .to({}, { duration: 1.5 })
             .to(potEl, { x: 0, y: 0, rotation: 0, duration: 0.7, ease: 'power2.inOut' })
           await k.play(tl)
-          k.to(s.pasta, { x: 425, y: -55, rotation: 0, duration: 0.2 })
           s.els.push(c, basin)
           await k.tell(pyx, 'ok5', 'cheer')
         },

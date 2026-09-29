@@ -25,7 +25,7 @@ export default {
     is_sweet: { who: 'shchyok', text: 'Нет-нет, это сладкое!' },
     is_salty: { who: 'shchyok', text: 'Ой, а это солёное!' },
     is_sour: { who: 'shchyok', text: 'Это кислое! Ищи другую тарелку.' },
-    is_bitter: { who: 'shchyok', text: 'Нет, это горькое! Тёмный шоколад не сладкий.' },
+    is_bitter: { who: 'shchyok', text: 'Нет, это горькое! Тёмный шоколад горчит.' },
     round2: { who: 'pyx', text: 'Молодец! Ещё три угощения!' },
     sum: { who: 'pyx', text: 'Язык узнаёт четыре вкуса: сладкий, солёный, кислый и горький.' },
     bye: { who: 'shchyok', text: 'Спасибо, Максим! Я наелся вкусов!' },

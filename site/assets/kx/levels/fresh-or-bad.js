@@ -66,7 +66,6 @@ export default defineLevel({
     k.kitchenBg()
     const pyx = k.pyx({ x: 250 })
     const chukh = k.guest('chukh', 1450, 968, { size: 230, face: 'left' })
-    window.__dbg = { pyx, chukh, k }
     gsap.set(chukh.el, { x: 500, opacity: 0 })
 
     // три зоны: корзинка, ведёрко, мама
@@ -126,7 +125,7 @@ export default defineLevel({
           const c = k.centerOf(z.el)
           const b = k.bubble('👍', c.x + 150, c.y - 130, { w: 150, h: 130, font: 60 })
           k.sfx('magic')
-          await tell(pyx, 'adult_ok', 'cheer')
+          await tell(pyx, 'adult_ok', 'jump')
           b.remove()
           // йогурт свежий → в корзинку
           const bc = k.centerOf(zoneOf('basket').el), h = k.centerOf(it.el)
@@ -225,7 +224,7 @@ export default defineLevel({
     // ── 4. вывод ──
     k.burst(940, 470, 10)
     await tell(pyx, 'sum', 'point')
-    await tell(chukh, 'bye', 'cheer')
+    await tell(chukh, 'bye', 'jump')
     k.burst(800, 420, 14)
   },
 })

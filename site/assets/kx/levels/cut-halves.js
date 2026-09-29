@@ -174,18 +174,15 @@ export default defineLevel({
     await k.tell(tyuk, 'tyuk_hi', 'happy')
     await k.tell(kapa, 'kapa_hi', 'think')
 
-    const fixOpacity = () => k.world.querySelectorAll('[style*="polygon"]').forEach(e => { e.style.opacity = '1' })
     const res2 = await k.cutRound({
       el: pie, at: { x: PIE.x, y: PIE.y }, size: PIE.size, angles: [90, 0], tolDeg: 30, gap: 22,
       prompt: k.key('q_pie1'), host: pyx,
       onCut: async i => {
-        fixOpacity()
         await k.wait(350)
         await k.tell(pyx, i === 0 ? 'pie_half' : 'pie_quarters', i === 0 ? 'point' : 'cheer')
         if (i === 0) await k.tell(pyx, 'pie_half2', 'point')
       },
     })
-    fixOpacity()
     await k.wait(200)
 
     // сектора → самостоятельные элементы (чтобы можно было нажимать/показывать подсказку)

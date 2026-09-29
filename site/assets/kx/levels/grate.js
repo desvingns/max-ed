@@ -113,7 +113,7 @@ export default defineLevel({
       const face = k.prop(faceArt(), GRATER.x, 560, o.faceW, (o.faceW * 46) / 70, { z: 8 })
       const fOpen = face.querySelector('.f-open'), fGig = face.querySelector('.f-giggle')
       gsap.set(food1, { rotation: o.rot, transformOrigin: '50% 50%' })
-      let cx = 800, cy = 610, said = 0, lastP = 0, lastSpawn = 0, lastN = -1, giggled = false, gigLine = false
+      let cx = 800, cy = 610, said = 0, lastP = 0, lastSpawn = 0, lastN = -1, giggled = false
       const place = () => {
         const s = 1 - 0.45 * lastP
         const yOff = -(1 - s) * (o.vlen / 2)
@@ -144,7 +144,6 @@ export default defineLevel({
           if (n !== lastN) { lastN = n; pile.innerHTML = pileSvg(o.pts, n, o.color, o.shade) }
           const third = Math.floor(p * 3 + 0.0001)
           if (third > said && third <= 3) { said = third; k.sayNumber(third) }
-          if (o.giggle && p > 0.12 && !gigLine) { gigLine = true; k.tell(pyx, 'giggle', 'laugh') }
         },
       })
       pile.innerHTML = pileSvg(o.pts, o.pts.length, o.color, o.shade)
@@ -155,9 +154,11 @@ export default defineLevel({
     // 1. морковка
     const r1 = await round({
       art: food('carrot'), w: 260, h: 74, vlen: 260, faceW: 56, rot: 90, need: 900,
-      intro: 'carrot', giggle: true, pts: HEAP, color: '#FFA24C', shade: '#E8792B',
+      intro: 'carrot', pts: HEAP, color: '#FFA24C', shade: '#E8792B',
     })
     k.burst(800, 700, 8)
+    await k.tell(pyx, 'giggle', 'laugh')
+    await k.tell(pyx, 'pile', 'point')
     await k.tell(pyx, 'carrot_done', 'cheer')
     fadeOut([r1.food1, r1.face])
     await k.wait(400)
@@ -172,7 +173,7 @@ export default defineLevel({
     await k.tell(pyx, 'cheese', 'point')
     const r2 = await round({
       art: cheeseBlock(), w: 130, h: 250, vlen: 250, faceW: 62, rot: 0, need: 700,
-      intro: null, giggle: false, pts: SPREAD, color: '#FFD93D', shade: '#E8A824',
+      intro: null, pts: SPREAD, color: '#FFD93D', shade: '#E8A824',
     })
     k.burst(800, 780, 8)
     await k.tell(pyx, 'cheese_done', 'cheer')

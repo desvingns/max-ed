@@ -87,6 +87,16 @@ const potArt = () => {
 
 const oatFlake = () => `<svg viewBox="0 0 30 20" width="100%" height="100%"><ellipse cx="15" cy="10" rx="12" ry="7" fill="#F2DDB0" stroke="${INK}" stroke-width="2.5"/></svg>`
 
+/** stepsBar с обходом бага тулкита: gsap.from по детям с CSS-transition на transform «залипает» (последние иконки остаются выше). */
+function stepsBar(k, icons) {
+  const bar = k.stepsBar(icons)
+  const kids = [...bar.el.children]
+  k.gsap.killTweensOf(kids)
+  k.gsap.set(kids, { clearProps: 'transform' })
+  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return bar
+}
+
 export default defineLevel({
   id: 'porridge',
   async run(k) {
@@ -96,7 +106,7 @@ export default defineLevel({
     const st = k.stove()
     const pyx = k.pyx({ x: 250 })
     const pig = k.guest('pig', 1420, L0.floorY, { size: 280, face: 'left' })
-    const bar = k.stepsBar(['🌾', '🥛', '🔥', '🥄', '🍓'])
+    const bar = stepsBar(k, ['🌾', '🥛', '🔥', '🥄', '🍓'])
 
     // ── кастрюля на конфорке (пока пустая) ──
     const POT = { w: 340, h: 261 }

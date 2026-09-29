@@ -140,6 +140,10 @@ function buildKit(x, def, meta) {
   k.shake = (el, o) => G.shake(k, el, o)
   k.hold = (el, o) => G.hold(k, el, o)
   k.dnd = o => G.dnd(k, o)
+  /** Перетащить один предмет в цель (с тест-крючком). Обёртка над dnd: предмет прилипает к центру цели. */
+  k.dragTo = async (el, target, o = {}) => {
+    await G.dnd(k, { items: [{ id: 'x', el }], zones: [{ id: 'z', el: target }], accept: () => true, prompt: o.prompt, host: o.host })
+  }
   k.sequence = o => G.sequence(k, o)
   k.cutLinear = o => cutLinear(k, o)
   k.cutRound = o => cutRound(k, o)
