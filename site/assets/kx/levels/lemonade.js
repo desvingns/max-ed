@@ -44,6 +44,8 @@ const iceArt = () => svg(90, 90,
   S('M12 22Q12 12 22 12L68 12Q78 12 78 22L78 68Q78 78 68 78L22 78Q12 78 12 68Z', '#E4F7FF', '#A9DCF2', { sw: 5 }) +
   HL(30, 30, 11, 5, -35, 0.9) + L('M56 60L66 50', '#fff', 4, 'opacity=".85"'))
 
+// высокий предмет в карточке (карточка ограничивает высоту svg только для квадратных картинок)
+const tall = (art, w, h) => `<div style="width:100%;height:100%;display:grid;place-items:center"><div style="width:${w}px;height:${h}px;transform:scale(1.2)">${art}</div></div>`
 const drop = c => `<div style="width:100%;height:100%;border-radius:50%;background:${c}"></div>`
 const grain = '<div style="width:100%;height:100%;background:#fff;border-radius:3px;box-shadow:0 0 0 2px #B7D4EA"></div>'
 
@@ -173,7 +175,7 @@ export default defineLevel({
     await k.choose({
       prompt: k.key('q_fix'), host: pyx, skill: 'science:taste',
       options: k.shuffle([
-        { id: 'salt', art: food('saltShaker'), color: '#FF5A5F', outcome: async () => { k.sfx('yuck'); pig.emote('sad'); await k.tell(pyx, 'fix_salt', 'laugh') } },
+        { id: 'salt', art: tall(food('saltShaker'), 120, 200), color: '#FF5A5F', outcome: async () => { k.sfx('yuck'); pig.emote('sad'); await k.tell(pyx, 'fix_salt', 'laugh') } },
         { id: 'lemon', art: food('lemon'), color: '#FFD93D', outcome: async () => { k.sfx('yuck'); pig.emote('surprised'); await k.tell(pyx, 'fix_lemon', 'shake') } },
         { id: 'sugar', art: food('sugarJar'), color: '#FF8FC8', correct: true, outcome: async () => { k.sfx('pop'); await k.tell(pyx, 'fix_sugar', 'happy') } },
       ]),

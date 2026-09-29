@@ -1,6 +1,7 @@
 // «Пополам и поровну»: режем булку ровно пополам (кривой срез — друг обижается), потом пирог на четвертинки для четверых.
 import { defineLevel, food } from '../lib.js'
 import { svg, P, C, HL, S, star, circlePath, nid, INK } from '../art.js'
+import { liveSplit } from './_split.js'
 
 const LOAF = { x: 800, y: 610, W: 500 }
 const LOAF_H = Math.round((LOAF.W * 146) / 260)
@@ -119,28 +120,23 @@ export default defineLevel({
       ghost = false
       if (misses >= 2 && !mid) { mid = guideLine(); k.tell(pyx, 'mid', 'point') } else if (misses === 1) k.tell(pyx, 'retry', 'think')
     }
+    // перетаскиваемое живёт в слое поверх всего: после броска draggable сбрасывает z-index
+    const front = k.prop('', 800, 500, 1600, 1000, { z: 30 })
+    front.style.pointerEvents = 'none'
+    const sv = liveSplit(k, { render: chunk, gap: 60, layer: front })
     const before = new Set(k.world.children)
     const cutP = k.cutLinear({
       food: 'bread', el: loaf, at: { x: LOAF.x, y: LOAF.y }, width: LOAF.W, mode: 'split', count: 1, gap: 60,
       evaluate: f => (!ghost && f >= 0.42 && f <= 0.58 ? true : { ok: false }),
       onBad: f => uneven(f),
-      onCut: async () => { await k.wait(450) },
+      onCut: async (i, info) => { sv.update(info); await k.wait(450) },
       prompt: k.key('q_cut'), host: pyx,
     })
     engineClone = [...k.world.children].find(c => !before.has(c) && c.dataset?.food === 'bread')
     const res = await cutP
     mid?.remove()
-    // перетаскиваемое живёт в слое поверх всего: после броска draggable сбрасывает z-index
-    const front = k.prop('', 800, 500, 1600, 1000, { z: 30 })
-    front.style.pointerEvents = 'none'
-    const halves = res.pieces.map(p => {
-      const el = chunk(p.a, p.b)
-      gsap.set(el, { x: Number(gsap.getProperty(p.el, 'x')) || 0 })
-      front.appendChild(el)
-      el.style.pointerEvents = 'auto'
-      return el
-    })
     res.clear()
+    const halves = sv.pieces.map(p => { p.el.style.pointerEvents = 'auto'; return p.el })
     k.burst(LOAF.x, LOAF.y - 100, 8)
     await k.tell(pyx, 'halves', 'cheer')
 

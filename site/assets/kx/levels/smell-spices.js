@@ -69,6 +69,10 @@ export default defineLevel({
   id: 'smell-spices',
   async run(k) {
     const gsap = k.gsap
+    // жесты героя не должны накладываться друг на друга (иначе «уплывает» стойка), поэтому ставим их в очередь
+    const emoQ = new Map()
+    const emo = (c, name) => { const p = (emoQ.get(c) ?? Promise.resolve()).then(() => (k.alive ? c.emote(name) : null)).catch(() => {}); emoQ.set(c, p); return p }
+    const tell = (c, id, name) => { if (name) emo(c, name); return k.tell(c, id) }
     k.kitchenBg()
     const pyx = k.pyx({ x: 270 })
     const head = pyx.part('.c-head')
@@ -108,7 +112,7 @@ export default defineLevel({
     }
     // облачко запаха летит от точки a к носу Пыха
     const puff = (a, color, delay = 0) => {
-      const size = k.rand(34, 56)
+      const size = k.rand(46, 74)
       const el = k.prop(`<div style="width:100%;height:100%;border-radius:50%;background:${color};box-shadow:inset -7px -7px 0 rgba(0,0,0,.10),0 0 0 4px rgba(255,255,255,.55)"></div>`, a.x, a.y, size, size, { z: 13 })
       el.style.opacity = '0'
       const b = snout()
@@ -122,7 +126,7 @@ export default defineLevel({
           const x = u * u * a.x + 2 * u * t * mid.x + t * t * b.x + Math.sin(t * 9) * 14 * wob
           const y = u * u * a.y + 2 * u * t * mid.y + t * t * b.y
           const s = size * (0.6 + 0.6 * Math.sin(Math.PI * t))
-          Object.assign(el.style, { left: `${x - s / 2}px`, top: `${y - s / 2}px`, width: `${s}px`, height: `${s}px`, opacity: String(Math.min(1, t * 6) * (t > 0.85 ? (1 - t) / 0.15 : 1) * 0.9) })
+          Object.assign(el.style, { left: `${x - s / 2}px`, top: `${y - s / 2}px`, width: `${s}px`, height: `${s}px`, opacity: String(Math.min(1, t * 6) * (t > 0.85 ? (1 - t) / 0.15 : 1) * 1) })
         },
         onComplete: () => el.remove(),
       })
@@ -131,7 +135,6 @@ export default defineLevel({
       k.sfx('swish', { vol: 0.5 })
       const dur = 0.22
       const lean = gsap.to(head, { x: 12, y: 8, rotation: 7, svgOrigin: headO, duration: dur, yoyo: true, repeat: n * 2 - 1, ease: 'sine.inOut' })
-      pyx.emote('think')
       await k.wait(dur * 1000 * 2 * n * 0.85)
       lean.kill(); gsap.to(head, { x: 0, y: 0, rotation: 0, svgOrigin: headO, duration: 0.25 })
       k.sfx('yum', { vol: 0.5 })
@@ -151,12 +154,12 @@ export default defineLevel({
               q.remove()
               dishBubble = thought(card(DISH[e]))
               k.sfx('yum'); k.sparkle(470, 300, 6)
-              await k.tell(pyx, okId, 'cheer')
+              await tell(pyx, okId, 'cheer')
             } else {
               k.sfx('yuck', { vol: 0.5 })
               const w = k.bubble(card(DISH[e]) + '<span class="emoji" style="font-size:40px"> 🤢</span>', 470, 300, { w: 230, h: 150, font: 64 })
-              pyx.emote(wrongN % 2 ? 'shake' : 'laugh')
-              await k.tell(pyx, wrongN++ % 2 ? 'wrong2' : 'wrong1')
+              const wi = wrongN++
+              await tell(pyx, wi % 2 ? 'wrong2' : 'wrong1', wi % 2 ? 'shake' : 'laugh')
               w.remove()
             }
           },
@@ -167,8 +170,8 @@ export default defineLevel({
     }
 
     // ── 0. знакомство ──
-    await k.tell(pyx, 'hello', 'wave')
-    await k.tell(pyx, 'rule', 'point')
+    await tell(pyx, 'hello', 'wave')
+    await tell(pyx, 'rule', 'point')
 
     // ── 1. корица: открыть, помахать, выбрать блюдо ──
     {
@@ -176,15 +179,15 @@ export default defineLevel({
       await k.tapOnEl(j.el, { prompt: k.key('q_open1'), host: pyx })
       await openJar(j)
       await k.scrub(j.el, {
-        need: 440, sfx: null, prompt: k.key('q_wave'), host: pyx,
+        need: 640, sfx: null, prompt: k.key('q_wave'), host: pyx,
         area: { x: X[0] - 200, y: 380, w: 400, h: 330 },
         onProgress: (p, pos) => {
-          if (performance.now() - (j.last ?? 0) > 160) { j.last = performance.now(); puff({ x: pos.x, y: Math.min(pos.y, 500) }, SP.cinnamon.aroma); k.sfx('swish', { vol: 0.25 }) }
+          if (performance.now() - (j.last ?? 0) > 110) { j.last = performance.now(); puff({ x: pos.x, y: Math.min(pos.y, 500) }, SP.cinnamon.aroma); k.sfx('swish', { vol: 0.25 }) }
         },
       })
       await k.wait(1100)
       await sniff(j)
-      await k.tell(pyx, 'sniff1', 'happy')
+      await tell(pyx, 'sniff1', 'happy')
       await askDish(j, 'q_dish1', 'ok1', [['pie', 'pie', '#FFB938', true], ['fish', 'fish', '#62C6FF'], ['salad', 'salad', '#6BCB77']])
       await closeJar(j); tick(j); setDim(j, true)
     }
@@ -195,15 +198,15 @@ export default defineLevel({
       await k.tapOnEl(j.el, { prompt: k.key('q_open2'), host: pyx })
       await openJar(j)
       await k.scrub(j.el, {
-        need: 320, sfx: null,
+        need: 460, sfx: null,
         area: { x: X[1] - 200, y: 380, w: 400, h: 330 },
         onProgress: (p, pos) => {
-          if (performance.now() - (j.last ?? 0) > 160) { j.last = performance.now(); puff({ x: pos.x, y: Math.min(pos.y, 500) }, SP.dill.aroma); k.sfx('swish', { vol: 0.25 }) }
+          if (performance.now() - (j.last ?? 0) > 110) { j.last = performance.now(); puff({ x: pos.x, y: Math.min(pos.y, 500) }, SP.dill.aroma); k.sfx('swish', { vol: 0.25 }) }
         },
       })
       await k.wait(1100)
       await sniff(j)
-      await k.tell(pyx, 'sniff2', 'happy')
+      await tell(pyx, 'sniff2', 'happy')
       await askDish(j, 'q_dish2', 'ok2', [['cake', 'cake', '#FF8FC8'], ['potato', 'potato', '#C68B59', true], ['ice', 'ice', '#B388EB']])
       await closeJar(j); tick(j); setDim(j, true)
     }
@@ -220,7 +223,7 @@ export default defineLevel({
       })
       await k.wait(1400)
       await sniff(j, 3)
-      await k.tell(pyx, 'sniff3', 'surprised')
+      await tell(pyx, 'sniff3', 'surprised')
       await askDish(j, 'q_dish3', 'ok3', [['pancakes', 'pancakes', '#FFB938'], ['pizza', 'pizza', '#FF5A5F'], ['tea', 'tea', '#3CC8B0', true]])
       await closeJar(j); tick(j); setDim(j, true)
     }
@@ -236,7 +239,7 @@ export default defineLevel({
       // «ап… ап…»
       const back = gsap.to(head, { y: -10, rotation: -9, svgOrigin: headO, duration: 0.35, yoyo: true, repeat: 3, ease: 'sine.inOut' })
       pyx.setMouth(0.6)
-      await k.tell(pyx, 'ap', 'surprised')
+      await tell(pyx, 'ap', 'surprised')
       back.kill()
       gsap.to(head, { y: -14, rotation: -12, svgOrigin: headO, duration: 0.25 })
       await k.wait(350)
@@ -245,22 +248,24 @@ export default defineLevel({
       gsap.to(head, { y: 12, rotation: 12, svgOrigin: headO, duration: 0.12 })
       k.sfx('sneeze')
       k.after(80, () => k.sfx('whoosh'))
-      const flames = [[-24, 1.0], [-6, 1.25], [14, 0.9]].map(([a, s]) => {
-        const f = k.prop(flameSvg(), hp.x + 20, hp.y + 40, 120 * s, 150 * s, { z: 14 })
-        f.style.transformOrigin = '50% 100%'
-        gsap.fromTo(f, { scale: 0.1, opacity: 1, rotation: a }, { scale: 1, duration: 0.25, ease: 'back.out(2)' })
-        const dir = (a - 25) * Math.PI / 180
-        k.to(f, { x: Math.sin(dir + 0.9) * 90 + 70, y: -150 - 40 * s, opacity: 0, duration: 0.9, delay: 0.2, ease: 'power2.out', onComplete: () => f.remove() })
-        return f
+      const mouth = { x: hp.x + 34, y: hp.y + 50 }
+      ;[[56, 0.9, 0], [82, 1.15, 0.05], [108, 0.8, 0.1]].forEach(([a, sc, dl]) => {
+        const w = 120 * sc, h = 150 * sc
+        const f = k.prop(flameSvg(), mouth.x, mouth.y - h / 2, w, h, { z: 14 })
+        gsap.set(f, { transformOrigin: '50% 100%', rotation: a, scale: 0.1, opacity: 1 })
+        k.timeline({ delay: dl })
+          .to(f, { scale: 1.15, duration: 0.28, ease: 'back.out(2.2)' })
+          .to(f, { scale: 1.0, x: `+=${Math.sin(a * Math.PI / 180) * 50}`, y: `-=${Math.cos(a * Math.PI / 180) * 50}`, duration: 0.9, ease: 'sine.inOut' }, 0.28)
+          .to(f, { opacity: 0, duration: 0.35, onComplete: () => f.remove() }, 0.95)
       })
       gsap.fromTo(k.world, { x: -10 }, { x: 0, duration: 0.6, ease: 'elastic.out(1.4,0.2)' })
-      k.sparkle(hp.x + 90, hp.y - 40, 6)
-      const say = k.tell(pyx, 'sneeze', 'surprised')
+      k.sparkle(hp.x + 120, hp.y - 60, 6)
+      k.after(500, () => k.sparkle(hp.x + 60, hp.y - 130, 5))
+      const say = tell(pyx, 'sneeze', 'surprised')
       await k.wait(700)
       gsap.to(head, { y: 0, rotation: 0, svgOrigin: headO, duration: 0.4, ease: 'back.out(2)' })
       await say
-      pyx.emote('laugh')
-      await k.tell(pyx, 'after_sneeze', 'laugh')
+      await tell(pyx, 'after_sneeze', 'laugh')
       await askDish(j, 'q_dish4', 'ok4', [['ice', 'ice', '#B388EB'], ['candy', 'candy', '#FF8FC8'], ['soup', 'soup', '#FF9F43', true]])
       await closeJar(j); tick(j)
     }
@@ -268,8 +273,8 @@ export default defineLevel({
     // ── 5. вывод ──
     jars.forEach(j => setDim(j, false))
     k.burst(900, 500, 10)
-    await k.tell(pyx, 'sum', 'point')
-    await k.tell(pyx, 'bye', 'cheer')
+    await tell(pyx, 'sum', 'point')
+    await tell(pyx, 'bye', 'cheer')
     k.burst(800, 420, 14)
   },
 })

@@ -11,11 +11,12 @@ const SURF = TY + 110                                             // урове�
 const BOTTOM = TY + 378                                           // дно (внутри)
 const SLOTS = [540, 650, 760, 870, 980, 1090]                     // места предметов в тазу
 
-const wavePath = (y0, y1) => {
+const waveTop = y0 => {
   let d = `M-80 ${y0}`
   for (let i = 0; i < 12; i++) d += 'q20 -12 40 0q20 12 40 0'
-  return d + `L${-80 + 12 * 80} ${y1}L-80 ${y1}Z`
+  return d
 }
+const wavePath = (y0, y1) => `${waveTop(y0)}L${-80 + 12 * 80} ${y1}L-80 ${y1}Z`
 const INNER = 'M28 60H692V350Q692 382 660 382H60Q28 382 28 350Z'
 
 const tubBack = () => {
@@ -34,7 +35,7 @@ const tubFront = () => {
   const id = nid('tf')
   return svg(720, 400,
     `<clipPath id="${id}"><path d="${INNER}"/></clipPath>` +
-    `<g clip-path="url(#${id})"><g class="wave"><path d="${wavePath(110, 400)}" fill="#3FB0F0" opacity=".26"/><path d="${wavePath(110, 112).replace(/L.*Z$/, '')}" fill="none" stroke="#fff" stroke-width="5" opacity=".75"/></g></g>` +
+    `<g clip-path="url(#${id})"><g class="wave"><path d="${wavePath(110, 400)}" fill="#3FB0F0" opacity=".26"/><path d="${waveTop(110)}" fill="none" stroke="#fff" stroke-width="5" opacity=".75"/></g></g>` +
     R(20, 30, 680, 360, 40, 'none', { sw: 8 }) +
     R(4, 16, 712, 34, 17, '#DDE6F2', { sw: 6 }) + HL(150, 28, 90, 4, -2, 0.85) +
     `<rect x="46" y="120" width="12" height="190" rx="6" fill="#fff" opacity=".55"/><rect x="46" y="322" width="12" height="20" rx="6" fill="#fff" opacity=".55"/>` +
@@ -55,18 +56,17 @@ const grapeArt = () => svg(110, 116,
   SH(55, 110, 36, 5) + L('M55 18Q56 6 72 4', '#A26B3B', 6) + P('M56 14Q78 -2 96 12Q80 26 58 20Z', '#6BCB77', { sw: 4 }) +
   S(circlePath(55, 64, 44), '#B388EB', '#8B62CF') + HL(38, 46, 10, 16, 20, 0.6))
 
-const ballArt = () => svg(100, 100, S(circlePath(50, 50, 40), '#FF5A5F', '#E0474C') + HL(36, 34, 10, 6, -30, 0.7))
-const cardArt = (float) => {
+const ball = (cx, cy, r) => S(circlePath(cx, cy, r), '#FF5A5F', '#E0474C') + HL(cx - r * 0.3, cy - r * 0.35, r * 0.28, r * 0.16, -30, 0.7)
+const cardArt = float => {
   const waves = 'M6 112q20 -14 40 0q20 14 40 0q20 -14 40 0q20 14 40 0q20 -14 40 0V190Q194 196 188 196H12Q6 196 6 190Z'
   const arrow = float
-    ? P('M170 78L170 30L154 46M170 30L186 46', 'none', { sw: 9, ink: '#2E8F5B' })
-    : P('M30 100L30 148L14 132M30 148L46 132', 'none', { sw: 9, ink: '#5B3FA5' })
+    ? L('M168 84L168 34M150 52L168 32L186 52', '#2E8F5B', 11)
+    : L('M32 96L32 146M14 128L32 148L50 128', '#5B3FA5', 11)
   return svg(200, 200,
+    (float ? ball(96, 84, 34) : '') +
     `<path d="${waves}" fill="#8DDCFB" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>` +
-    (float
-      ? `<g transform="translate(64 62) scale(.66)">${ballArt()}</g>`
-      : `<g opacity=".8" transform="translate(70 128) scale(.58)">${ballArt()}</g>` + [[126, 150, 6], [140, 126, 8], [120, 106, 5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${INK}" stroke-width="3"/>`).join('')) +
-    (float ? `<path d="M6 112q20 -14 40 0q20 14 40 0q20 -14 40 0q20 14 40 0q20 -14 40 0" fill="none" stroke="#fff" stroke-width="5" opacity=".7"/>` : '') +
+    (float ? `<path d="M6 112q20 -14 40 0q20 14 40 0q20 -14 40 0q20 14 40 0q20 -14 40 0" fill="none" stroke="#fff" stroke-width="5" opacity=".7"/>`
+      : `<g opacity=".85">${ball(100, 164, 28)}</g>` + [[142, 150, 6], [150, 124, 8], [132, 104, 5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${INK}" stroke-width="3"/>`).join('')) +
     arrow)
 }
 
@@ -117,9 +117,10 @@ export default defineLevel({
         k.to(b, { y: -(y0 - SURF) + k.rand(-10, 10), x: `+=${k.rand(-20, 20)}`, opacity: 0.2, duration: k.rand(0.9, 1.4), delay: i * 0.12, ease: 'power1.out', onComplete: () => b.remove() })
       }
     }
-    const make = (id, x, y, z = 6) => {
-      const m = ITEMS[id]
-      return k.prop(m.art(), x, y, m.w, Math.round(m.w * m.ar), { z, cls: 'kx-food' })
+    const make = (id, x, y, z = 6, w = ITEMS[id].w) => {
+      const el = k.prop(ITEMS[id].art(), x, y, w, Math.round(w * ITEMS[id].ar), { z, cls: 'kx-food' })
+      el.dataset.food = id
+      return el
     }
 
     // ── предметы в тазу: падение → плавает / тонет ──
@@ -154,8 +155,6 @@ export default defineLevel({
     await k.wait(500)
     await k.tell(pyx, 'hello', 'wave')
     const duck = make('duck', 800, 200, 6)
-    await k.wait(200)
-    duck.style.opacity = '1'
     await drop(duck, 'duck', 0)
     await k.tell(pyx, 'duck', 'happy')
     await k.tell(kapa, 'kapa_rule', 'nod')
@@ -166,9 +165,8 @@ export default defineLevel({
     for (let i = 0; i < ORDER.length; i++) {
       const id = ORDER[i], m = ITEMS[id]
       bar.set(i)
-      const el = make(id, 1310, 700 - 45 - Math.round((m.big ?? m.w) * m.ar) / 2 + 10, 8)
-      el.style.width = `${m.big ?? m.w}px`; el.style.height = `${Math.round((m.big ?? m.w) * m.ar)}px`
-      el.style.left = `${1310 - (m.big ?? m.w) / 2}px`; el.style.top = `${640 - Math.round((m.big ?? m.w) * m.ar) / 2}px`
+      const bw = m.big ?? m.w, bh = Math.round(bw * m.ar)
+      const el = make(id, 1310, 684 - bh / 2, 8, bw)
       k.fromTo(el, { y: -200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'bounce.out' })
       k.sfx('boing', { vol: 0.5 })
       await k.wait(500)

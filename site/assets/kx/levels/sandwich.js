@@ -4,6 +4,10 @@
 import { defineLevel, food } from '../lib.js'
 import { svg, C, F, HL, SH } from '../art.js'
 
+// Обход бага ui.stepsBar: у .kx-step стоит transition:transform, из-за чего gsap.from запоминает «промежуточную» позицию
+// и поздние иконки навсегда съезжают вверх. Через секунду сбрасываем inline-transform (заодно оживает .now{scale}).
+const stepsBar = (k, icons, o) => { const b = k.stepsBar(icons, o); k.after(1300, () => k.gsap.set([...b.el.children], { clearProps: 'transform' })); return b }
+
 const thumb = name => `<div style="width:56px;height:56px">${food(name)}</div>`
 
 // внутренняя мякоть ломтика (в координатах food('breadSlice') 160×154) — по ней «размазывается» масло
@@ -100,7 +104,7 @@ export default defineLevel({
     busya.face('left')
     const bb = k.bubble(order([['cheeseSlice', 74], ['sausageSlice', 62, true]]), 1250, 585, { w: 230, h: 175, tail: 'right' })
     await k.tell(busya, 'busya_order', 'happy')
-    const s1 = k.stepsBar([thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), '🥪'])
+    const s1 = stepsBar(k, [thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), '🥪'])
     s1.set(0)
     await k.tell(pyx, 'recipe', 'point')
 
@@ -173,7 +177,7 @@ export default defineLevel({
     // ───── раунд 2: бутерброд для Щёчкина (с колбаской) — сам по порядку ─────
     const hb = k.bubble(order([['cheeseSlice', 70], ['sausageSlice', 44], ['sausageSlice', 44], ['sausageSlice', 44]]), 1400, 575, { w: 290, h: 175, tail: 'right' })
     await k.tell(shchyok, 'shchyok_order', 'happy')
-    const s2 = k.stepsBar([thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), thumb('sausageSlice'), '🥪'])
+    const s2 = stepsBar(k, [thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), thumb('sausageSlice'), '🥪'])
     s2.set(0)
     const stack2 = makeStack(k, PLATE)
     const topArt = `<div style="position:relative;width:100%;height:100%">${food('breadSlice')}<span class="emoji" style="position:absolute;right:-16px;top:-22px;font-size:54px">⬇️</span></div>`

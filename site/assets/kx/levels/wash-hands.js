@@ -3,6 +3,16 @@
 import { defineLevel, sfx2 } from '../lib.js'
 import { INK, svg, P, L, F, E, C, R, HL, SH, S, rounded, circlePath, nid, darker } from '../art.js'
 
+
+/** У героев после серии эмоций «плывёт» корень (gsap путает svgOrigin/transformOrigin): после каждой эмоции сбрасываем трансформ корня. */
+const guardEmotes = (k, ...chars) => {
+  for (const c of chars) {
+    const root = c.svg.querySelector('.c-root'), orig = c.emote.bind(c)
+    let busy = 0
+    c.emote = e => { busy++; return orig(e).finally(() => { if (--busy === 0 && k.alive) k.gsap.set(root, { clearProps: 'all' }) }) }
+  }
+  return chars[0]
+}
 // ───────────────────────── рисунки ─────────────────────────
 const SKIN = '#FFCFA6'
 const SKIN_SH = '#F2A87E'
@@ -137,6 +147,7 @@ export default defineLevel({
     k.bg(bgSvg())
     const pyx = k.pyx({ x: 230, y: 962, size: 400 })
     const kapa = k.guest('kapa', 1385, 962, { size: 330, face: 'left' })
+    guardEmotes(k, pyx, kapa)
     k.prop(ducklingSvg(), 430, 690, 120, 102, { z: 4 })
     k.prop(soapDishSvg(), 1200, 742, 200, 60, { z: 4 })
     const faucet = k.prop(faucetSvg(), 800, 245, 260, 250, { z: 9 })

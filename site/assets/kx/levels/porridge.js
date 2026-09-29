@@ -341,7 +341,8 @@ export default defineLevel({
 
     // Хрюня ест
     const all = [bowl, mound, ...T.map(t => t.el)]
-    await k.play(gsap.to(all, { x: `+=${1330 - 1225}`, y: `+=${800 - 640}`, duration: 0.8, ease: 'power2.inOut' }))
+    all.forEach((e, i) => { e.style.zIndex = String(12 + i) })
+    await k.play(gsap.to(all, { x: `+=${1305 - 1225}`, y: `+=${815 - 640}`, duration: 0.8, ease: 'power2.inOut' }))
     pig.emote('happy')
     k.sfx('yum')
     await k.wait(300)

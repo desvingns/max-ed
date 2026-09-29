@@ -3,6 +3,16 @@ import { defineLevel, food } from '../lib.js'
 import { setAccessory } from '../deps.js'
 import { INK, svg, P, L, F, E, C, R, HL, SH, S, rounded, circlePath, ellipsePath, nid } from '../art.js'
 
+
+/** У героев после серии эмоций «плывёт» корень (gsap путает svgOrigin/transformOrigin): после каждой эмоции сбрасываем трансформ корня. */
+const guardEmotes = (k, ...chars) => {
+  for (const c of chars) {
+    const root = c.svg.querySelector('.c-root'), orig = c.emote.bind(c)
+    let busy = 0
+    c.emote = e => { busy++; return orig(e).finally(() => { if (--busy === 0 && k.alive) k.gsap.set(root, { clearProps: 'all' }) }) }
+  }
+  return chars[0]
+}
 // ───────────────────────── рисунки ─────────────────────────
 const PINK = { base: '#FF8FC8', sh: '#F06AAE', light: '#FFC2E0' }
 const TEAL = { base: '#2EC4B6', sh: '#1F9D93', light: '#8DE3D6' }
@@ -107,6 +117,7 @@ export default defineLevel({
     const PX = 540, PY = 946, PS = 540
     const pyx = k.pyx({ x: PX, y: PY, size: PS, hat: false })
     const busya = k.guest('busya', 175, 966, { size: 310, face: 'right' })
+    guardEmotes(k, pyx, busya)
 
     // зона «на Пыха»
     const zone = k.prop('', PX, 690, 380, 520, { z: 8 })
@@ -193,6 +204,11 @@ export default defineLevel({
       onWrong: async (it, z) => {
         if (!z) return
         mistakes++
+        if (mistakes >= 2) { // после двух ошибок подсказываем нужное
+          const need = wearApron ? hat : clean
+          const stop = k.fx.pulse(need)
+          k.after(6000, stop)
+        }
         k.sfx('boing', { vol: 0.5 })
         const c = k.centerOf(pyx.el)
         if (it.id === 'dirty') {
@@ -221,11 +237,12 @@ export default defineLevel({
         } else {
           const h = mount(headIn, beanieWorn())
           k.gsap.fromTo(h, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'bounce.out' })
-          k.gsap.to(pyx.el, { filter: 'hue-rotate(-25deg) saturate(1.5)', duration: 0.6 })
+          const cheeks = pyx.svg.querySelectorAll('.c-cheek')
+          k.gsap.to(cheeks, { opacity: 1, scale: 1.45, duration: 0.5, transformOrigin: '50% 50%' })
           sweat()
           pyx.emote('sad')
           await k.tell(pyx, 'winter')
-          k.gsap.to(pyx.el, { filter: 'none', duration: 0.4 })
+          k.gsap.to(cheeks, { opacity: 0.55, scale: 1, duration: 0.4 })
           remove(h)
         }
       },
@@ -235,8 +252,8 @@ export default defineLevel({
 
     // финал: Пых-повар крутится и показывает чистые ладошки
     k.burst(PX, 600, 12)
-    pyx.emote('spin')
     k.sfx('tada')
+    await pyx.emote('spin')
     await k.tell(pyx, 'done', 'cheer')
     await k.tell(pyx, 'palms', 'wave')
     await k.narrate('sum')

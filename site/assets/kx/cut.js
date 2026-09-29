@@ -50,6 +50,8 @@ let cloneN = 0
 /** Клон элемента с уникальными id внутри SVG (иначе clipPath ссылается на чужие определения). */
 export function cloneArt(el) {
   const c = el.cloneNode(true)
+  c.style.opacity = '' // исходник скрыт opacity:0 — клон должен быть виден
+  c.style.pointerEvents = ''
   const n = ++cloneN
   const html = c.innerHTML
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m => m[1])
