@@ -148,9 +148,18 @@ async def main():
         cur = man.get(ln["key"])
         if cur and cur.get("f") == f and (VOICE_DIR / f).exists() and cur.get("t") == ln["text"]:
             continue
+        if (VOICE_DIR / f).exists():  # файл уже озвучен (прошлый прогон оборвался) — берём его, без сети
+            x = decode(VOICE_DIR / f)
+            e, d = lipsync(x)
+            man[ln["key"]] = {"f": f, "d": d, "e": e, "t": ln["text"]}
+            continue
         todo.append((ln, voice, pitch, rate, fx, tts, f))
     print(f"реплик: {len(lines)}, к озвучке: {len(todo)}", flush=True)
-    sem = asyncio.Semaphore(4)
+    sem = asyncio.Semaphore(6)
+
+    def save():
+        json.dump(man, open(MANIFEST, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+
     done = 0
     failed = []
 
@@ -172,6 +181,7 @@ async def main():
             done += 1
             if done % 25 == 0:
                 print(f"  {done}/{len(todo)}", flush=True)
+                save()
 
     await asyncio.gather(*(one(i) for i in todo))
     # снять устаревшие записи kx (реплик больше нет) и сохранить

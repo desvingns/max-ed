@@ -297,7 +297,8 @@ export default defineLevel({
           if (done || !p0) return
           const dt = performance.now() - t0, dy = p0.y - p.y
           gsap.to(spat, { opacity: 0, duration: 0.2 })
-          if (dy > 90 && dt < 1500) win()
+          // после трёх неудач засчитываем любой взмах (никакого «проигрыша»)
+          if ((dy > 90 && dt < 1500) || fails >= 3) win()
           else {
             fails++
             gsap.fromTo(pcake, { y: 0 }, { y: -14, yoyo: true, repeat: 1, duration: 0.15 })
@@ -330,7 +331,7 @@ export default defineLevel({
     await toPlate(pcake, 0)
     await k.tell(pyx, 'stack_q', 'point')
     for (let n = 1; n < 5; n++) {
-      await k.tapN(pan, 1, n === 1 ? {} : {})
+      await k.tapN(pan, 1)
       const p = k.prop(pcakeArt('#E39A4B'), CEN.x, CEN.y, 300, 100, { z: 7 })
       p.querySelector('.holes').setAttribute('opacity', '0.4')
       gsap.set(p, { transformPerspective: 700 })
