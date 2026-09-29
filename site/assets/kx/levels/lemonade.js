@@ -7,14 +7,13 @@ import { INK, svg, P, L, R, HL, SH, S } from '../art.js'
 // ── кувшин (300×380), уровень жидкости l = 0..1 ──
 const JUG = { x: 800, y: 530, w: 300, h: 380 }
 const BODY = 'M48 44L238 44L232 338Q231 356 213 356L73 356Q55 356 54 338Z'
-const MARK = 0.82 // «полоска»: сюда надо налить воду
-const GOAL = [0.66, 0.95] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
+const GOAL = [0.62, 0.9] // зелёная полоса: отпустить можно в этом диапазоне
 const levelY = l => JUG.y - JUG.h / 2 + 350 - 290 * l // мировая y поверхности
 
 let uid = 0
 const jugArt = () => {
   const id = `lmj${++uid}`
-  const my = 350 - 290 * MARK
+  const yTop = 350 - 290 * GOAL[1], yBot = 350 - 290 * GOAL[0], my = (yTop + yBot) / 2
   return svg(300, 380,
     SH(140, 374, 104, 8) +
     L('M236 96C298 96 302 262 230 288', INK, 36) + L('M236 96C298 96 302 262 230 288', '#EAF7FF', 24) +
@@ -26,9 +25,10 @@ const jugArt = () => {
     P(BODY, 'none', { sw: 6 }) +
     R(34, 30, 218, 22, 11, '#F4FBFF') +
     R(68, 84, 12, 176, 6, '#fff', { sw: 0, attr: 'opacity=".65"' }) +
-    // полоска-«риска»
-    `<path d="M58 ${my}L228 ${my}" stroke="#2E9E5B" stroke-width="8" stroke-dasharray="16 10" stroke-linecap="round"/>` +
-    P(`M26 ${my - 16}L52 ${my}L26 ${my + 16}Z`, '#2E9E5B', { sw: 4 }))
+    // зелёная полоса: сюда налить воду
+    `<rect x="58" y="${yTop}" width="170" height="${yBot - yTop}" fill="#2E9E5B" opacity=".28"/>` +
+    `<path d="M58 ${yTop}L228 ${yTop}M58 ${yBot}L228 ${yBot}" stroke="#2E9E5B" stroke-width="6" stroke-dasharray="14 9" stroke-linecap="round"/>` +
+    P(`M26 ${my - 18}L54 ${my}L26 ${my + 18}Z`, '#2E9E5B', { sw: 4 }))
 }
 
 const bottleArt = () => svg(110, 260,
@@ -131,15 +131,14 @@ export default defineLevel({
         k.tell(pyx, 'over', 'surprised')
       },
     })
-    waterL = MARK
-    setLevel(waterL, 0.35)
+    setLevel(waterL, 0.2)
     k.to(bottle, { opacity: 0, y: 60, duration: 0.4, onComplete: () => bottle.remove() })
     k.sparkle(795, levelY(waterL), 6)
     await k.tell(pyx, 'water_ok', 'cheer')
 
     // ───── 2. лимоны ─────
     bar.set(1)
-    const lemons = [0, 1, 2].map(i => k.food('lemon', 1010 + i * 140, 660, 132, { z: 8 }))
+    const lemons = [0, 1, 2].map(i => k.food('lemon', 960 + i * 125, 660, 124, { z: 8 }))
     k.fromTo(lemons, { y: -300, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.12, ease: 'bounce.out' })
     await k.wait(900)
     const juiceCol = ['#E6F6C6', '#F3F3A0', '#FFEE78']
@@ -236,7 +235,7 @@ export default defineLevel({
     k.to([jar, spoon], { opacity: 0, y: 40, duration: 0.4, onComplete: () => { jar.remove(); spoon.remove() } })
 
     // как исправить? — кислинка
-    const lem2 = [0, 1].map(i => k.food('lemon', 1070 + i * 150, 660, 132, { z: 8 }))
+    const lem2 = [0, 1].map(i => k.food('lemon', 1030 + i * 140, 660, 124, { z: 8 }))
     k.fromTo(lem2, { y: -300, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.12, ease: 'bounce.out' })
     await k.wait(800)
     await k.tapAll(lem2, {

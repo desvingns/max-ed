@@ -144,7 +144,7 @@ export default defineLevel({
     })
     // молоко из стакана — в миску
     await k.tell(pyx, 'milk_ok', 'cheer')
-    cow.emote('happy')
+    await k.tell(cow, 'cow_ok', 'happy')
     await k.play(gsap.to(cup, { x: 930 - 1170, y: 470 - 655, rotation: -105, duration: 0.7, ease: 'power2.inOut' }))
     puff(882, 520, '#FFFFFF', 10, 8, 70)
     k.sfx('pour')

@@ -12,8 +12,8 @@ const JAR = 'M52 80L208 80L194 336Q193 352 177 352L83 352Q67 352 66 336Z'
 const PIVOT = { x: 222, y: 456 } // низ-право основания (точка наклона)
 const TILT = 30
 const HOME = [1055, 1165, 1275] // «дом» стаканов на столешнице
-const MARK = 0.6 // полоска на стакане
-const GOAL = [0.42, 0.78] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
+const MARK = 0.6 // ровный уровень: после отпускания в зелёной полосе стакан «доливается» до него
+const GOAL = [0.48, 0.72] // зелёная полоса на стакане
 const GLASS_Y = 650
 
 let uid = 0
@@ -65,14 +65,15 @@ const lidArt = () => svg(200, 66, lidShape(100, 20))
 const GB = 'M16 14L104 14L94 150Q93 160 83 160L37 160Q27 160 26 150Z'
 const glassArt = () => {
   const id = `smc${++uid}`, gid = `smq${uid}`
-  const my = 156 - 138 * MARK
+  const yTop = 156 - 138 * GOAL[1], yBot = 156 - 138 * GOAL[0], my = 156 - 138 * MARK
   return svg(120, 170,
     gradDef(gid) + SH(60, 166, 46, 5) +
     `<path d="${GB}" fill="#EAF7FF" fill-opacity=".55"/>` +
     `<clipPath id="${id}"><path d="${GB}"/></clipPath><g clip-path="url(#${id})"><rect class="gl" x="0" y="156" width="120" height="0" fill="url(#${gid})"/></g>` +
     P(GB, 'none', { sw: 5.5 }) +
     R(22, 26, 9, 100, 4, '#fff', { sw: 0, attr: 'opacity=".55"' }) +
-    `<path d="M32 ${my}L92 ${my}" stroke="#2E9E5B" stroke-width="6" stroke-dasharray="10 8" stroke-linecap="round"/>` +
+    `<rect x="30" y="${yTop}" width="64" height="${yBot - yTop}" fill="#2E9E5B" opacity=".3"/>` +
+    `<path d="M30 ${yTop}L94 ${yTop}M30 ${yBot}L94 ${yBot}" stroke="#2E9E5B" stroke-width="4" stroke-dasharray="9 7" stroke-linecap="round"/>` +
     P(`M2 ${my - 11}L22 ${my}L2 ${my + 11}Z`, '#2E9E5B', { sw: 3 }))
 }
 
@@ -341,6 +342,7 @@ export default defineLevel({
     kapa.emote('happy')
     k.to(hue, { v: '+=720', duration: 2.4, ease: 'none', onUpdate: () => { kapa.el.style.filter = `hue-rotate(${hue.v}deg)` } })
     await k.tell(kapa, 'yum')
+    k.to(gK, { opacity: 0, scale: 0.6, duration: 0.3 })
     k.burst(1400, 760, 10)
     await k.tell(pyx, 'sum', 'point')
     await k.tell(kapa, 'bye', 'cheer')

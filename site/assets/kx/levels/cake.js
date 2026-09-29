@@ -28,12 +28,15 @@ const spongeArt = () => svg(380, 62,
 /** слой крема с волнистыми краями */
 const creamArt = () => svg(380, 36,
   S('M14 10Q190 -2 366 10Q380 12 376 20Q380 30 360 30Q350 40 330 30Q310 42 290 30Q270 42 250 30Q230 42 210 30Q190 42 170 30Q150 42 130 30Q110 42 90 30Q70 42 50 30Q30 34 20 30Q0 28 4 20Q0 12 14 10Z', CREAM, CREAM_SH) + HL(110, 12, 70, 3.4, -1, 0.9))
-/** миска ягод */
-const berryPlateArt = () => svg(170, 130,
-  SH(85, 122, 66, 5) + S('M12 60Q12 118 85 118Q158 118 158 60Z', '#FFFFFF', '#DCE8F5') +
-  [[48, 52, '#FF5A5F'], [82, 42, '#E0474C'], [116, 52, '#FF5A5F'], [64, 66, '#FF8A8A'], [100, 66, '#B04EC8']].map(([x, y, c]) => C(x, y, 17, c) + HL(x - 5, y - 6, 4, 2.4, -35, 0.7)).join('') +
-  E(85, 60, 78, 12, 'none') + HL(36, 92, 4, 14, 8, 0.7))
-const berryArt = col => svg(60, 60, SH(30, 56, 20, 3) + C(30, 32, 22, col) + HL(22, 24, 6, 3.4, -35, 0.7) + P('M22 12L30 4L38 12L30 16Z', '#6BCB77', { sw: 3 }))
+/** «заготовка» коржа для полки: толстый ломоть 230×110 */
+const spongeChunkArt = () => svg(230, 110,
+  SH(115, 104, 100, 5) + S('M22 22Q115 6 208 22Q226 26 226 46L226 84Q226 100 206 100L24 100Q4 100 4 84L4 46Q4 26 22 22Z', SPONGE, SPONGE_SH) +
+  E(115, 30, 100, 16, '#F4CE90', { sw: 4 }) + [[60, 62], [100, 74], [140, 58], [180, 70], [80, 88], [160, 90], [122, 40], [70, 36]].map(([x, y]) => C(x, y, 3.6, '#B87B38', { sw: 0 })).join('') + HL(70, 26, 34, 5, -4, 0.7))
+/** «заготовка» крема для полки: мисочка со взбитыми сливками 200×140 */
+const creamBowlArt = () => svg(200, 140,
+  SH(100, 132, 78, 5) + S('M18 66Q18 126 100 126Q182 126 182 66Z', '#FF8FC8', '#E0609F') +
+  S('M30 68Q22 44 46 40Q46 20 74 24Q90 4 116 20Q146 12 152 38Q180 42 170 68Q100 80 30 68Z', CREAM, CREAM_SH) +
+  HL(66, 40, 18, 5, -20, 0.9) + HL(40, 92, 5, 16, 8, 0.6))
 /** тарелка-подставка */
 const standArt = () => svg(460, 90,
   SH(230, 84, 200, 5, 0.16) + E(230, 46, 218, 32, '#FFFFFF') + E(230, 50, 150, 18, '#E6F0FA', { sw: 0 }) + E(230, 46, 218, 32, 'none') + HL(120, 32, 40, 5, -6, 0.8))
@@ -54,7 +57,7 @@ export default defineLevel({
     const L0 = k.layout
     k.kitchenBg()
     const pyx = k.pyx({ x: 230 })
-    const busya = k.guest('busya', 1390, L0.floorY, { size: 280, face: 'left' })
+    const busya = k.guest('busya', 1440, L0.floorY, { size: 270, face: 'left' })
     const bar = stepsBar(k, ['🎂', '🍓', '🕯️', '🔥', '💨'])
     const AGE = k.pick([2, 3, 4, 5])
     const dropMama = b => gsap.to(b, { scale: 0, autoAlpha: 0, duration: 0.3, onComplete: () => b.remove() })
@@ -68,79 +71,58 @@ export default defineLevel({
     await k.tell(busya, 'busya_hi', 'jump')
 
     // ═══ 1. слои по порядку ═══
-    const SEQ = ['sponge', 'cream', 'sponge', 'cream', 'berry']
-    const shelf = [
-      { id: 'sp1', kind: 'sponge', art: spongeArt(), w: 190, h: 31, x: 470, y: 850, line: 'layer_sponge' },
-      { id: 'cr1', kind: 'cream', art: creamArt(), w: 190, h: 34, x: 700, y: 850, line: 'layer_cream' },
-      { id: 'sp2', kind: 'sponge', art: spongeArt(), w: 190, h: 31, x: 930, y: 850, line: 'layer_sponge2' },
-      { id: 'cr2', kind: 'cream', art: creamArt(), w: 190, h: 34, x: 1160, y: 850, line: 'layer_cream2' },
-    ]
-    // раскладка на полке — перемешана, но массив items идёт в нужном порядке для подсказки
-    const xs = k.shuffle([470, 700, 930, 1160])
-    const layerItems = SEQ.slice(0, 4).map((kind, i) => {
-      const src = shelf.find(s => s.kind === kind && !s.used)
-      src.used = true
-      return { ...src, x: xs[i], el: null }
-    })
-    layerItems.forEach(it => { it.el = k.prop(it.art, it.x, 850, 250, it.kind === 'sponge' ? 41 : 24, { z: 20 }) })
-    const berryBox = { id: 'berries', kind: 'berry', x: 1330, el: k.prop(berryPlateArt(), 1330, 830, 170, 130, { z: 20 }) }
-    // ягоды: по порядку — последними; положим тарелку в общий список
-    const items = [...layerItems, berryBox]
-    // позиция: слева направо в перемешанном порядке, ягоды справа (не путается со слоями)
+    const SEQ = ['sponge', 'cream', 'sponge', 'cream']
+    const LINES = ['layer_sponge', 'layer_cream', 'layer_sponge2', 'layer_cream2']
+    const xs = k.shuffle([430, 645, 860, 1075])
+    const items = SEQ.map((kind, i) => ({
+      id: `l${i}`, kind, i, line: LINES[i],
+      el: kind === 'sponge' ? k.prop(spongeChunkArt(), xs[i], 850, 200, 96, { z: 20 }) : k.prop(creamBowlArt(), xs[i], 845, 190, 133, { z: 20 }),
+    }))
     k.fromTo(items.map(i => i.el), { y: 250, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.6)' })
     await k.wait(500)
 
-    // невидимая «зона торта» шире тарелки: чуть выше — над стопкой
-    const zoneEl = k.prop('', CAKE.x, CAKE.base - 120, 440, 320, { z: 2 })
+    // невидимая «зона торта» шире тарелки, выше стопки
+    const zoneEl = k.prop('', CAKE.x, CAKE.base - 140, 460, 360, { z: 2 })
     const zone = { id: 'cake', el: zoneEl, pad: 30 }
     let step = 0, stackTop = CAKE.base
-    const layerEls = []
-    const WRONG = { sponge: 'wrong_sponge', cream: 'wrong_cream', berry: 'wrong_berry' }
+    const WRONG = { sponge: 'wrong_sponge', cream: 'wrong_cream' }
     await k.dnd({
       items, zones: [zone],
       prompt: k.key('layer_q'), host: pyx,
       accept: it => it.kind === SEQ[step],
       onCorrect: async it => {
-        if (it.kind === 'berry') {
-          step++
-          return
-        }
+        // состояние обновляем сразу (до анимаций)
         const h = LAYER_H[it.kind]
-        const w = it.kind === 'sponge' ? CAKE.w : CAKE.w
         const cy = stackTop - h / 2
-        const c = k.centerOf(it.el)
-        // настоящий слой (без drag-обёртки) — создаём на торте, а перетаскиваемую заготовку убираем
-        it.el.style.zIndex = '30'
-        await k.play(gsap.to(it.el, { x: `+=${CAKE.x - c.x}`, y: `+=${cy - 50 - c.y}`, scale: w / 250 * 0.95, duration: 0.4, ease: 'power2.out' }))
-        const layer = k.prop(it.kind === 'sponge' ? spongeArt() : creamArt(), CAKE.x, cy, w, h, { z: 6 + step })
-        gsap.fromTo(layer, { y: -40, scaleY: 1.3, opacity: 0 }, { y: 0, scaleY: 1, opacity: 1, duration: 0.3, ease: 'bounce.out' })
-        it.el.remove()
-        k.sfx('plop')
-        layerEls.push(layer)
         stackTop -= h - (it.kind === 'sponge' ? 6 : 8)
+        const zIdx = 6 + step
         step++
+        const c = k.centerOf(it.el)
+        it.el.style.zIndex = '30'
+        await k.play(gsap.to(it.el, { x: `+=${CAKE.x - c.x}`, y: `+=${cy - 70 - c.y}`, scale: 0.8, duration: 0.4, ease: 'power2.out' }))
+        const layer = k.prop(it.kind === 'sponge' ? spongeArt() : creamArt(), CAKE.x, cy, CAKE.w, h, { z: zIdx })
+        gsap.fromTo(layer, { y: -40, scaleY: 1.3, opacity: 0 }, { y: 0, scaleY: 1, opacity: 1, duration: 0.3, ease: 'bounce.out' })
+        gsap.to(it.el, { opacity: 0, scale: 0.4, y: '+=40', duration: 0.25, onComplete: () => it.el.remove() })
+        k.sfx('plop')
         pyx.emote('happy')
         await k.tell(pyx, it.line)
       },
       onWrong: async (it, z) => {
         if (!z) return
-        pyx.emote(it.kind === 'berry' ? 'laugh' : 'shake')
-        await k.tell(pyx, it.kind === 'berry' ? 'wrong_berry' : step === 0 ? 'wrong_first' : WRONG[SEQ[step]])
+        pyx.emote('shake')
+        await k.tell(pyx, step === 0 ? 'wrong_first' : WRONG[SEQ[step]])
       },
-      until: placed => step >= 4,
     })
     zoneEl.remove()
 
     // ═══ 2. ягоды в самом конце ═══
     bar.set(1)
     await k.tell(pyx, 'layer_berry', 'point')
-    const berryCols = ['#FF5A5F', '#E0474C', '#FF5A5F', '#B04EC8', '#FF5A5F']
-    const bxy = [-150, -75, 0, 75, 150].map(dx => ({ x: CAKE.x + dx, y: stackTop + 2 }))
-    const bItems = berryCols.map((c, i) => ({ id: `b${i}`, el: k.prop(berryArt(c), 520 + i * 90, 850, 60, 60, { z: 20 }) }))
-    gsap.to(berryBox.el, { opacity: 0, y: 60, duration: 0.3, onComplete: () => berryBox.el.remove() })
+    const bxy = [-140, -70, 0, 70, 140].map(dx => ({ x: CAKE.x + dx, y: stackTop - 4 }))
+    const bItems = [0, 1, 2, 3, 4].map(i => ({ id: `b${i}`, el: k.food('strawberry', 500 + i * 130, 850, 100, { z: 20 }) }))
     k.fromTo(bItems.map(b => b.el), { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.07, ease: 'back.out(1.6)' })
     await k.wait(500)
-    const topZoneEl = k.prop('', CAKE.x, stackTop - 60, 420, 200, { z: 2 })
+    const topZoneEl = k.prop('', CAKE.x, stackTop - 40, 460, 260, { z: 2 })
     let nb = 0
     await k.dnd({
       items: bItems, zones: [{ id: 'top', el: topZoneEl, pad: 40 }],
@@ -148,12 +130,13 @@ export default defineLevel({
       accept: () => true,
       onCorrect: async it => {
         const p = bxy[nb++]
+        const n = nb
         const c = k.centerOf(it.el)
         it.el.style.zIndex = '30'
-        await k.play(gsap.to(it.el, { x: `+=${p.x - c.x}`, y: `+=${p.y - c.y}`, scale: 0.8, duration: 0.35, ease: 'power2.out' }))
+        await k.play(gsap.to(it.el, { x: `+=${p.x - c.x}`, y: `+=${p.y - c.y}`, scale: 0.7, duration: 0.35, ease: 'power2.out' }))
         k.sfx('plop')
         k.sparkle(p.x, p.y, 3)
-        await k.sayNumber(nb)
+        await k.sayNumber(n)
       },
     })
     topZoneEl.remove()
@@ -164,12 +147,14 @@ export default defineLevel({
     bar.set(2)
     await k.tell(pyx, 'age_ask', 'point')
     busya.emote('happy')
-    const ageBadge = k.badge(String(AGE), 1390, 600, { size: 130, color: '#FFB938' })
+    const ageBadge = k.badge(String(AGE), 1440, 655, { size: 120, color: '#FFB938' })
     await k.tell(busya, `age_${AGE}`, 'cheer')
     await k.tell(pyx, 'candle_q', 'point')
-    const CY = stackTop - 66 // центр свечи (высота 100), стоит позади ягод
+    const CSC = 0.7 // масштаб свечки на торте
+    const CY = stackTop - 58 // центр свечи (высота 150·CSC), стоит позади ягод
+    const wickTop = CY + (34 - 75) * CSC
     const cxs = Array.from({ length: AGE }, (_, i) => CAKE.x + (i - (AGE - 1) / 2) * 68)
-    const candles = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, col: CANDLE_COL[i], el: k.prop(candleArt(CANDLE_COL[i]), 520 + i * 90, 850, 46, 150, { z: 20 }) }))
+    const candles = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, col: CANDLE_COL[i], el: k.prop(candleArt(CANDLE_COL[i]), 520 + i * 130, 830, 60, 195, { z: 20 }) }))
     // 5 свечек в коробке, ставим ровно AGE
     k.fromTo(candles.map(c => c.el), { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.07, ease: 'back.out(1.6)' })
     await k.wait(500)
@@ -186,7 +171,7 @@ export default defineLevel({
         nc++
         const c = k.centerOf(it.el)
         it.el.style.zIndex = '30'
-        await k.play(gsap.to(it.el, { x: `+=${x - c.x}`, y: `+=${CY - c.y}`, scale: 0.67, duration: 0.35, ease: 'power2.out' }))
+        await k.play(gsap.to(it.el, { x: `+=${x - c.x}`, y: `+=${CY - c.y}`, scale: CSC * (150 / 195), duration: 0.35, ease: 'power2.out' }))
         k.sfx('plop')
         placedCandles.push({ el: it.el, x, id: it.id })
         it.el.style.zIndex = '40'
@@ -211,7 +196,7 @@ export default defineLevel({
     const cakeBtn = k.prop('', CAKE.x, stackTop - 20, 380, 220, { z: 45 })
     await k.tapOnEl(cakeBtn, { prompt: k.key('light_tap'), host: pyx })
     const flames = placedCandles.map(p => {
-      const f = k.prop(flameArt(), p.x, CY - 76, 46, 60, { z: 41 })
+      const f = k.prop(flameArt(), p.x, wickTop - 24, 40, 52, { z: 41 })
       gsap.set(f, { transformOrigin: '50% 100%' })
       gsap.fromTo(f, { scale: 0 }, { scale: 1, duration: 0.4, ease: 'back.out(2.5)', delay: 0.15 * placedCandles.indexOf(p) })
       gsap.to(f, { scaleY: 1.12, scaleX: 0.92, duration: 0.16, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: 0.6 })
@@ -249,7 +234,7 @@ export default defineLevel({
         await k.wait(250)
         gsap.killTweensOf(f)
         gsap.to(f, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => f.remove() })
-        const sm = k.prop(smokeArt(), p.x, CY - 80, 40, 54, { z: 41 })
+        const sm = k.prop(smokeArt(), p.x, wickTop - 30, 40, 54, { z: 41 })
         gsap.fromTo(sm, { y: 0, opacity: 0.9 }, { y: -70, opacity: 0, duration: 1.4, ease: 'power1.out', onComplete: () => sm.remove() })
         out++
         await k.sayNumber(i)
@@ -265,7 +250,6 @@ export default defineLevel({
     busya.emote('cheer')
     tarabar.emote('dance')
     await k.tell(busya, 'hooray', 'jump')
-    await k.tell(pyx, 'cut', 'point')
     await k.tell(pyx, 'sum', 'point')
     await k.tell(tarabar, 'bye', 'cheer')
     bar.done(4)

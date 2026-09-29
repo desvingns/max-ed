@@ -104,7 +104,7 @@ export default defineLevel({
     const potEggs = k.onBurner(k.prop(potEggsArt(), 0, 0, 300, 230, { z: 7 }), 0, 300, 230)
     potEggs.style.pointerEvents = 'none'
     const pyx = k.pyx({ x: 250 })
-    const kapa = k.guest('kapa', 1470, FL, { size: 250, face: 'left' })
+    const kapa = k.guest('kapa', 1440, FL, { size: 250, face: 'left' })
     const bar = k.stepsBar(['🥚', '🔥', '⏳', '🧊', '🔍', '🥄'])
     const B = st.burner(0) // дно кастрюли
     const steamEls = []
@@ -318,15 +318,15 @@ export default defineLevel({
 
     // ───── 6. кто как любит? ─────
     bar.set(5)
-    const sh = k.guest('shchyok', 1010, FL, { size: 230, face: 'left' })
-    const bu = k.guest('busya', 1240, FL, { size: 230, face: 'left' })
+    const sh = k.guest('shchyok', 995, FL, { size: 230, face: 'left' })
+    const bu = k.guest('busya', 1215, FL, { size: 230, face: 'left' })
     k.fromTo([sh.el, bu.el], { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.15, ease: 'back.out(1.6)' })
     await k.wait(700)
     await k.tell(pyx, 'q_guests', 'point')
     const guests = [
-      { key: 'sh', ch: sh, want: 'liquid', bx: 1072 },
-      { key: 'bu', ch: bu, want: 'thick', bx: 1302 },
-      { key: 'ka', ch: kapa, want: 'hard', bx: 1500 },
+      { key: 'sh', ch: sh, want: 'liquid', bx: 1057 },
+      { key: 'bu', ch: bu, want: 'thick', bx: 1277 },
+      { key: 'ka', ch: kapa, want: 'hard', bx: 1470 },
     ]
     const wishBubble = g => k.bubble(`<div style="width:78px;height:103px">${cutArt(g.want)}</div>`, g.bx, 640, { w: 150, h: 170, tail: 'left', font: 80 })
     const bubblesEls = []

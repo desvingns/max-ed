@@ -68,7 +68,7 @@ export default defineLevel({
 
     k.kitchenBg()
     const pyx = k.pyx({ x: 250 })
-    const chukh = k.guest('chukh', 1450, 968, { size: 230, face: 'left' })
+    const chukh = k.guest('chukh', 1390, 968, { size: 230, face: 'left' })
     gsap.set(chukh.el, { x: 500, opacity: 0 })
 
     // три зоны: корзинка, ведёрко, мама

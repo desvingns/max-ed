@@ -9,7 +9,7 @@ const jarTop = JAR.y - JAR.h / 2
 const BODY = 'M40 62L180 62L198 96L198 270Q198 290 178 290L42 290Q22 290 22 270L22 96Z'
 const LV = { bottom: 284, span: 206 } // уровень 0..1 → y внутри банки
 const lvY = l => LV.bottom - LV.span * l
-const HALF = 0.5, GOAL = [0.36, 0.68] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
+const HALF = 0.5, GOAL = [0.4, 0.62] // зелёная полоса «половина»: отпустить можно в этом диапазоне
 const CREAM = '#FFF3C6', THICK = '#FFE99A', WHEY = '#BFE1F7', BUTTER = '#FFD84D'
 
 let uid = 0
@@ -33,8 +33,9 @@ const jarArt = () => {
     R(34, 48, 152, 22, 10, '#F4FBFF') +
     R(46, 100, 12, 150, 6, '#fff', { sw: 0, attr: 'opacity=".65"' }) +
     // полоска «половина»
-    `<path d="M32 ${lvY(HALF)}L188 ${lvY(HALF)}" class="mark" stroke="#2E9E5B" stroke-width="7" stroke-dasharray="14 9" stroke-linecap="round"/>` +
-    `<path class="mark" d="M6 ${lvY(HALF) - 15}L30 ${lvY(HALF)}L6 ${lvY(HALF) + 15}Z" fill="#2E9E5B" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>` +
+    `<rect class="mark" x="32" y="${lvY(GOAL[1])}" width="156" height="${lvY(GOAL[0]) - lvY(GOAL[1])}" fill="#2E9E5B" opacity=".28"/>` +
+    `<path class="mark" d="M32 ${lvY(GOAL[1])}L188 ${lvY(GOAL[1])}M32 ${lvY(GOAL[0])}L188 ${lvY(GOAL[0])}" stroke="#2E9E5B" stroke-width="6" stroke-dasharray="14 9" stroke-linecap="round"/>` +
+    `<path class="mark" d="M6 ${lvY(HALF) - 17}L30 ${lvY(HALF)}L6 ${lvY(HALF) + 17}Z" fill="#2E9E5B" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>` +
     // крышка (появляется, когда закрыли)
     `<g class="lid" opacity="0" data-origin="110 40">${S('M26 62Q26 30 60 30L160 30Q194 30 194 62L194 66Q194 72 188 72L32 72Q26 72 26 66Z', '#FF8FC8', '#E06AA8')}${[52, 80, 108, 136, 164].map(x => `<path d="M${x} 36L${x} 68" stroke="#E06AA8" stroke-width="4" stroke-linecap="round"/>`).join('')}${HL(62, 44, 22, 5, -6, 0.6)}</g>`)
 }
@@ -122,7 +123,7 @@ export default defineLevel({
     const surfY = l => jarTop + lvY(l)
     let misses = 0
     let lv = await k.hold(pitcher, {
-      duration: 3.8, goal: GOAL, prompt: k.key('q_pour'), host: pyx, sfx: null,
+      duration: 3.4, goal: GOAL, prompt: k.key('q_pour'), host: pyx, sfx: null,
       onStart: () => { stream.style.display = 'block'; k.to(pitcher, { ...tiltP, duration: 0.35, ease: 'power2.out', overwrite: 'auto' }) },
       onLevel: p => {
         setLevel(p, 0.1)
@@ -139,8 +140,8 @@ export default defineLevel({
         k.tell(pyx, 'over', 'surprised')
       },
     })
-    lv = HALF
-    setLevel(lv, 0.35)
+    setLevel(lv, 0.2)
+    q('.foamg').setAttribute('transform', `translate(0 ${lvY(lv) + 10})`)
     k.to(pitcher, { opacity: 0, y: 40, duration: 0.4, delay: 0.5, onComplete: () => pitcher.remove() })
     k.sparkle(800, surfY(lv), 6)
     await k.tell(pyx, 'pour_ok', 'cheer')
