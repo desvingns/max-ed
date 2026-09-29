@@ -252,7 +252,7 @@ export default defineLevel({
     // вода становится золотистым бульоном
     if (waterPath) g.to(waterPath, { attr: { fill: '#FFC069' }, duration: 1.2 })
     shufflePieces()
-    g.to(ladle, { x: 0, y: -60, rotation: 180, duration: 0.5, ease: 'power2.inOut' })
+    g.to(ladle, { x: 0, y: -60, rotation: 180, opacity: 0, duration: 0.5, ease: 'power2.inOut' })
     k.sparkle(720, 300, 8)
     k.sfx('sparkle')
     await tell(pyx, 'stir_ok', 'cheer')
@@ -310,6 +310,8 @@ export default defineLevel({
     })
     k.popIn(bowls)
     await k.wait(600)
+    g.set(ladle, { x: 0, y: -60, rotation: 180 })
+    g.to(ladle, { opacity: 1, duration: 0.3 })
     let scoopQ = Promise.resolve()
     const scoop = i => {
       scoopQ = scoopQ.then(async () => {

@@ -130,11 +130,12 @@ export default defineLevel({
     await tell(pyx, 'recipe', 'point')
 
     const trayBack = k.prop('<div style="width:100%;height:100%;border-radius:46px;background:rgba(255,255,255,.86);box-shadow:inset 0 0 0 8px rgba(59,47,79,.14)"></div>', 760, TRAY.y, 800, 170, { z: 0 })
-    k.popIn(trayBack)
+    g.set(trayBack, { opacity: 0 })
 
     /** Один шаг рецепта: в лотке нужный продукт + два «не по порядку». Тащим на тарелку. */
     const place = async (kind, decoys, prompt, onCorrect) => {
       const kinds = k.shuffle([kind, ...decoys])
+      g.to(trayBack, { opacity: 1, duration: 0.3 })
       const items = kinds.map((kd, i) => ({ kind: kd, el: k.food(KIND[kd][0], TRAY.xs[i], TRAY.y, KIND[kd][1], { z: 0 }) }))
       k.fromTo(items.map(i => i.el), { y: 140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.08, ease: 'back.out(1.6)' })
       await k.wait(700)
@@ -161,6 +162,7 @@ export default defineLevel({
         },
       })
       g.to(items.map(i => i.el), { opacity: 0, y: 60, duration: 0.3 })
+      g.to(trayBack, { opacity: 0, duration: 0.3 })
       k.after(320, () => items.forEach(i => i.el.remove()))
       await k.wait(250)
     }
@@ -211,7 +213,7 @@ export default defineLevel({
         { id: 'sausage', art: food('sausageSlice'), color: '#FF8FA0' },
         { id: 'top', art: topArt, color: '#E6A462' },
       ],
-      cardSize: 152, slotsY: 132, cardsY: 760,
+      cardSize: 140, slotsY: 132, cardsY: 764,
       prompt: k.key('r2'), host: pyx,
       onPlace: async (step, i) => {
         s2.set(i + 1)
