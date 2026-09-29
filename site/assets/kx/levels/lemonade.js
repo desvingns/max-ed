@@ -83,8 +83,8 @@ export default defineLevel({
       const g = k.prop(kitchen.glass(0.62, liqColor), from.x, from.y, 84, 119, { z: 15 })
       k.fromTo(g, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25 })
       k.sfx('pour', { vol: 0.5 })
-      await k.play(k.gsap.to(g, { x: mouth.x - from.x - 30, y: mouth.y - from.y - 70, duration: 0.75, ease: 'power2.inOut' }))
-      await k.play(k.gsap.to(g, { rotation: 38, x: '+=20', y: '+=42', duration: 0.3, ease: 'power1.inOut' }))
+      await k.play(k.gsap.to(g, { x: mouth.x - 45 - from.x, y: mouth.y - 45 - from.y, duration: 0.75, ease: 'power2.inOut' }))
+      await k.play(k.gsap.to(g, { rotation: 36, x: '+=24', y: '+=52', duration: 0.3, ease: 'power1.inOut' }))
       k.sfx(sound, { vol: 0.6 })
       pig.emote(emote)
       await k.tell(pig, lineId)
@@ -162,6 +162,9 @@ export default defineLevel({
       { from: 0.3, to: 0.68, color: '#8AC926', face: '😋' },
       { from: 0.68, to: 1, color: '#FF9EC8', face: '🥴' },
     ], value: v })
+    const endL = k.prop('<span class="emoji" style="font-size:54px;line-height:1">🍋</span>', 476, 178, 70, 70, { z: 66 })
+    const endR = k.prop('<span class="emoji" style="font-size:54px;line-height:1">🍬</span>', 1124, 178, 70, 70, { z: 66 })
+    k.popIn([endL, endR])
     await k.wait(500)
     await sip('surprised', 'sour', 'yuck')
     await k.tell(pyx, 'sour_why', 'think')

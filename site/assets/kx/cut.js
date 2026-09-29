@@ -119,6 +119,7 @@ export function cutLinear(k, o) {
     let made = 0, misses = 0, busy = false, plateN = 0, cursor = 0
     if (o.prompt) { k.setRepeat(() => void k.say(o.prompt, o.host ?? null)); k.say(o.prompt, o.host ?? null) }
     const hint = idleHint(k, () => {
+      if (guided && made >= guides.length) return () => {}
       const g = guided ? guides[made] : 0.5
       const x = rect.x + g * W
       return wiggleHand({ x, y: rect.y - 40 }, { x, y: rect.y + H + 30 })()
@@ -273,6 +274,7 @@ export function cutRound(k, o) {
     if (guided && (o.guides ?? true)) angles.forEach(a => { const d = lineGuide(a); guideEls.push(d); gsap.from(d, { opacity: 0, duration: 0.4 }) })
     if (o.prompt) { k.setRepeat(() => void k.say(o.prompt, o.host ?? null)); k.say(o.prompt, o.host ?? null) }
     const hint = idleHint(k, () => {
+      if (guided && made >= angles.length) return () => {}
       const a = ((guided ? angles[made] : 90) * Math.PI) / 180
       const dx = Math.cos(a), dy = Math.sin(a)
       return wiggleHand({ x: at.x - dx * R * 1.15, y: at.y - dy * R * 1.15 }, { x: at.x + dx * R * 1.15, y: at.y + dy * R * 1.15 })()

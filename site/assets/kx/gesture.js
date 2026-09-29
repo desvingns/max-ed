@@ -58,16 +58,17 @@ export function track(k, area, h = {}) {
 
 /** Подсказка «ручка», если 7 секунд нет действий. show() → stop(). */
 export function idleHint(k, show, ms = HINT_MS) {
-  let t = 0, stop = null
+  let t = 0, stop = null, dead = false
   const clear = () => { window.clearTimeout(t); stop?.(); stop = null }
   const kick = () => {
+    if (dead) return
     clear()
-    t = window.setTimeout(() => { if (k.alive) stop = show() }, ms)
+    t = window.setTimeout(() => { if (k.alive && !dead) stop = show() }, ms)
   }
   k.on(k.root, 'pointerdown', kick, { capture: true })
   kick()
-  k.onExit(clear)
-  return { kick, stop: () => { window.clearTimeout(t); stop?.(); stop = null } }
+  k.onExit(() => { dead = true; clear() })
+  return { kick, stop: () => { dead = true; clear() } }
 }
 
 /** Ручка, которая туда-обратно водит между двумя точками (для скраба/размешивания). */
@@ -389,9 +390,11 @@ export function dnd(k, o) {
       check()
     }
     for (const it of items) {
+      const z0 = it.el.style.zIndex
       const c = draggable(k, it.el, {
         onStart: () => { if (busy || placed.has(it)) return false; hint.kick(); o.onPick?.(it) },
         onEnd: pt => {
+          it.el.style.zIndex = z0 // draggable() сбрасывает z-index на пустой — возвращаем
           if (busy) { c.home(); return }
           const z = nearest(pt)
           if (!z) { if (!o.quietMiss) { audio.sfx('boing', { vol: 0.4 }) } c.home(); return }

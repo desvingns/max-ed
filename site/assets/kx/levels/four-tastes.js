@@ -176,7 +176,7 @@ export default defineLevel({
         const glass = k.prop(kitchen.glass(0.85), 1190, 640, 120, 170, { z: 12 })
         k.fromTo(glass, { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' })
         await k.wait(600)
-        await k.play(k.gsap.to(glass, { x: -310, y: -70, rotation: -50, duration: 0.6, ease: 'power2.inOut' }))
+        await k.play(k.gsap.to(glass, { x: -262, y: -62, rotation: -55, duration: 0.6, ease: 'power2.inOut' }))
         k.sfx('pour', { vol: 0.7 })
         ham.emote('happy')
         await k.wait(500)
@@ -224,21 +224,19 @@ export default defineLevel({
       stop()
       await k.wait(200)
     }
-    await k.tell(pyx, 'four', 'cheer')
-
     // ── часть 2: раскладываем по тарелкам вкусов ──
     k.to(plate, { opacity: 0, y: 40, duration: 0.3, onComplete: () => plate.remove() })
     mouth.remove()
-    ham.moveTo({ x: 1400, y: 705 })
     const zones = KINDS.map((kind, i) => {
       const el = k.prop(
         `<div style="position:relative;width:100%;height:100%;border-radius:40px;background:rgba(255,255,255,.92);box-shadow:inset 0 0 0 10px ${COLORS[kind]},0 10px 0 rgba(0,0,0,.14)"><div style="position:absolute;left:50%;top:8px;width:92px;height:92px;transform:translateX(-50%)">${face(kind)}</div></div>`,
         400 + i * 240, 872, 220, 200, { z: 3 })
       return { id: kind, kind, el, n: 0 }
     })
-    k.popIn(zones.map(z => z.el), 0.12)
-    await k.wait(700)
-    await k.tell(pyx, 'q_sort', 'point')
+    k.popIn(zones.map(z => z.el), 0.25)
+    ham.moveTo({ x: 1400, y: 705 })
+    await k.tell(pyx, 'four', 'cheer')
+    await k.wait(300)
 
     let said = { sweet: 0, salty: 0 }
     for (const [r, round] of B_ROUNDS.entries()) {

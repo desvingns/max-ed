@@ -1,6 +1,6 @@
 // «Пополам и поровну»: режем булку ровно пополам (кривой срез — друг обижается), потом пирог на четвертинки для четверых.
 import { defineLevel, food } from '../lib.js'
-import { svg, P, F, C, HL, S, star, circlePath, nid, INK } from '../art.js'
+import { svg, P, C, HL, S, star, circlePath, nid, INK } from '../art.js'
 
 const LOAF = { x: 800, y: 610, W: 500 }
 const LOAF_H = Math.round((LOAF.W * 146) / 260)
@@ -59,12 +59,13 @@ export default defineLevel({
       const w = (b - a) * LOAF.W
       const cx = LOAF.x - LOAF.W / 2 + ((a + b) / 2) * LOAF.W
       const el = k.prop('', cx, LOAF.y, w, LOAF_H, { z })
-      const layer = extra => `<div style="position:absolute;left:${-a * LOAF.W}px;top:0;width:${LOAF.W}px;height:${LOAF_H}px;${extra}">${food('bread')}</div>`
+      const noShadow = h => h.replace(/<ellipse class="kx-shadow"[^>]*>/, '')
+      const layer = (extra, plain) => `<div style="position:absolute;left:${-a * LOAF.W}px;top:0;width:${LOAF.W}px;height:${LOAF_H}px;${extra}">${plain ? noShadow(food('bread')) : food('bread')}</div>`
       const fw = 0.045
       const face = 'filter:brightness(1.5) saturate(.55)'
       let html = layer(`clip-path:inset(0 ${(1 - b) * 100}% 0 ${a * 100}%)`)
-      if (a > 0.001) html += layer(`clip-path:inset(0 ${(1 - a - fw) * 100}% 0 ${a * 100}%);${face}`)
-      if (b < 0.999) html += layer(`clip-path:inset(0 ${(1 - b) * 100}% 0 ${(b - fw) * 100}%);${face}`)
+      if (a > 0.001) html += layer(`clip-path:inset(0 ${(1 - a - fw) * 100}% 0 ${a * 100}%);${face}`, true)
+      if (b < 0.999) html += layer(`clip-path:inset(0 ${(1 - b) * 100}% 0 ${(b - fw) * 100}%);${face}`, true)
       el.innerHTML = html
       return el
     }
@@ -108,6 +109,7 @@ export default defineLevel({
       who.emote('sad')
       k.sfx('yuck', { vol: 0.5 })
       await k.tell(who, smallLeft ? 'uneven_l' : 'uneven_r')
+      await k.wait(600)
       gsap.to(A, { x: 0, duration: 0.35 })
       gsap.to(B, { x: 0, duration: 0.35 })
       await k.wait(420)
@@ -128,9 +130,14 @@ export default defineLevel({
     engineClone = [...k.world.children].find(c => !before.has(c) && c.dataset?.food === 'bread')
     const res = await cutP
     mid?.remove()
+    // перетаскиваемое живёт в слое поверх всего: после броска draggable сбрасывает z-index
+    const front = k.prop('', 800, 500, 1600, 1000, { z: 30 })
+    front.style.pointerEvents = 'none'
     const halves = res.pieces.map(p => {
       const el = chunk(p.a, p.b)
       gsap.set(el, { x: Number(gsap.getProperty(p.el, 'x')) || 0 })
+      front.appendChild(el)
+      el.style.pointerEvents = 'auto'
       return el
     })
     res.clear()
