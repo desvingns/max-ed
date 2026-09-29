@@ -87,14 +87,22 @@ const potArt = () => {
 
 const oatFlake = () => `<svg viewBox="0 0 30 20" width="100%" height="100%"><ellipse cx="15" cy="10" rx="12" ry="7" fill="#F2DDB0" stroke="${INK}" stroke-width="2.5"/></svg>`
 
-/** stepsBar с обходом бага тулкита: gsap.from по детям с CSS-transition на transform «залипает» (последние иконки остаются выше). */
+/**
+ * Своя полоска шагов (обход бага k.stepsBar: у .kx-step стоит CSS-transition на transform, а gsap.from по детям
+ * с stagger конфликтует с ним — часть иконок остаётся выше экрана). Анимируем контейнер, стили — из kit (kx-steps/kx-step).
+ */
 function stepsBar(k, icons) {
-  const bar = k.stepsBar(icons)
-  const kids = [...bar.el.children]
-  k.gsap.killTweensOf(kids)
-  k.gsap.set(kids, { clearProps: 'transform' })
-  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
-  return bar
+  const el = document.createElement('div')
+  el.className = 'kx-steps'
+  el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
+  k.root.appendChild(el)
+  const items = [...el.children]
+  k.fromTo(el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return {
+    el,
+    set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },
+    done(i) { items[i]?.classList.add('done'); items[i]?.classList.remove('now') },
+  }
 }
 
 export default defineLevel({

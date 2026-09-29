@@ -4,14 +4,22 @@ import { defineLevel, food } from '../lib.js'
 import { kitchen } from '../deps.js'
 import { svg, P, L, F, E, C, R, HL, SH, S, rounded, circlePath, star, nid, INK } from '../art.js'
 
-/** stepsBar с обходом бага тулкита (gsap.from + CSS-transition на transform → последние иконки «залипают»). */
+/**
+ * Своя полоска шагов (обход бага k.stepsBar: у .kx-step стоит CSS-transition на transform, а gsap.from по детям
+ * с stagger конфликтует с ним — часть иконок остаётся выше экрана). Анимируем контейнер, стили — из kit (kx-steps/kx-step).
+ */
 function stepsBar(k, icons) {
-  const bar = k.stepsBar(icons)
-  const kids = [...bar.el.children]
-  k.gsap.killTweensOf(kids)
-  k.gsap.set(kids, { clearProps: 'transform' })
-  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
-  return bar
+  const el = document.createElement('div')
+  el.className = 'kx-steps'
+  el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
+  k.root.appendChild(el)
+  const items = [...el.children]
+  k.fromTo(el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return {
+    el,
+    set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },
+    done(i) { items[i]?.classList.add('done'); items[i]?.classList.remove('now') },
+  }
 }
 
 // ── фигурки: контуры в системе координат 150×150 (как у food('cookieCutter')) ──

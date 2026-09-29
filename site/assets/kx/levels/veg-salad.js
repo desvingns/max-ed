@@ -53,8 +53,8 @@ function speech(k) {
     if (ROOT_DUR[e]) await gate(c, ROOT_DUR[e])
     if (k.alive) c.emote(e)
   }
-  const tell = async (c, id, e) => { emote(c, e); await tell(c, id) }
-  const praise = async c => { await gate(c, 1.1); await praise(c) }
+  const tell = async (c, id, e) => { emote(c, e); await k.tell(c, id) }
+  const praise = async c => { await gate(c, 1.1); await k.praise(c) }
   return { emote, tell, praise }
 }
 

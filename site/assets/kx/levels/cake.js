@@ -5,14 +5,22 @@ import { defineLevel, food } from '../lib.js'
 import { kitchen } from '../deps.js'
 import { svg, P, L, F, E, C, R, HL, SH, S, rounded, circlePath, star, nid, INK } from '../art.js'
 
-/** stepsBar с обходом бага тулкита (gsap.from + CSS-transition на transform → последние иконки «залипают»). */
+/**
+ * Своя полоска шагов (обход бага k.stepsBar: у .kx-step стоит CSS-transition на transform, а gsap.from по детям
+ * с stagger конфликтует с ним — часть иконок остаётся выше экрана). Анимируем контейнер, стили — из kit (kx-steps/kx-step).
+ */
 function stepsBar(k, icons) {
-  const bar = k.stepsBar(icons)
-  const kids = [...bar.el.children]
-  k.gsap.killTweensOf(kids)
-  k.gsap.set(kids, { clearProps: 'transform' })
-  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
-  return bar
+  const el = document.createElement('div')
+  el.className = 'kx-steps'
+  el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
+  k.root.appendChild(el)
+  const items = [...el.children]
+  k.fromTo(el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return {
+    el,
+    set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },
+    done(i) { items[i]?.classList.add('done'); items[i]?.classList.remove('now') },
+  }
 }
 
 // ── геометрия торта (центр по x, дно первого коржа) ──
@@ -59,7 +67,7 @@ export default defineLevel({
     const pyx = k.pyx({ x: 230 })
     const busya = k.guest('busya', 1440, L0.floorY, { size: 270, face: 'left' })
     const bar = stepsBar(k, ['🎂', '🍓', '🕯️', '🔥', '💨'])
-    const AGE = k.pick([2, 3, 4, 5])
+    const AGE = k.pick([1, 2, 3, 4, 5])
     const dropMama = b => gsap.to(b, { scale: 0, autoAlpha: 0, duration: 0.3, onComplete: () => b.remove() })
 
     // стойка для торта
@@ -149,7 +157,6 @@ export default defineLevel({
     busya.emote('happy')
     const ageBadge = k.badge(String(AGE), 1440, 655, { size: 120, color: '#FFB938' })
     await k.tell(busya, `age_${AGE}`, 'cheer')
-    await k.tell(pyx, 'candle_q', 'point')
     const CSC = 0.7 // масштаб свечки на торте
     const CY = stackTop - 58 // центр свечи (высота 150·CSC), стоит позади ягод
     const wickTop = CY + (34 - 75) * CSC
@@ -163,7 +170,7 @@ export default defineLevel({
     const placedCandles = []
     await k.dnd({
       items: candles, zones: [{ id: 'topc', el: candleZoneEl, pad: 40 }],
-      prompt: null, host: pyx,
+      prompt: k.key('candle_q'), host: pyx,
       accept: () => true,
       until: () => nc >= AGE,
       onCorrect: async it => {

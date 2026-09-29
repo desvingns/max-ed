@@ -50,14 +50,22 @@ const jamBlobArt = () => svg(240, 90,
   S('M20 50C20 26 60 14 120 14C180 14 220 26 220 50C220 70 180 76 120 76C60 76 20 70 20 50Z', '#E4425A', '#B92C46') +
   P('M40 64Q36 84 46 86Q56 80 52 66Z', '#E4425A', { sw: 4 }) + P('M180 66Q176 86 188 86Q196 80 194 66Z', '#E4425A', { sw: 4 }) + HL(80, 34, 30, 7, -8, 0.6))
 
-/** stepsBar с обходом бага тулкита: gsap.from по детям с CSS-transition на transform «залипает» (последние иконки остаются выше). */
+/**
+ * Своя полоска шагов (обход бага k.stepsBar: у .kx-step стоит CSS-transition на transform, а gsap.from по детям
+ * с stagger конфликтует с ним — часть иконок остаётся выше экрана). Анимируем контейнер, стили — из kit (kx-steps/kx-step).
+ */
 function stepsBar(k, icons) {
-  const bar = k.stepsBar(icons)
-  const kids = [...bar.el.children]
-  k.gsap.killTweensOf(kids)
-  k.gsap.set(kids, { clearProps: 'transform' })
-  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
-  return bar
+  const el = document.createElement('div')
+  el.className = 'kx-steps'
+  el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
+  k.root.appendChild(el)
+  const items = [...el.children]
+  k.fromTo(el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return {
+    el,
+    set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },
+    done(i) { items[i]?.classList.add('done'); items[i]?.classList.remove('now') },
+  }
 }
 
 export default defineLevel({

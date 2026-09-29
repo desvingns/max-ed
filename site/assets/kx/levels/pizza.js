@@ -81,14 +81,22 @@ const cheeseMoundArt = () => svg(260, 160,
   S('M40 56C46 26 92 12 130 12C168 12 214 26 220 56C196 68 64 68 40 56Z', '#FFE066', '#F2B824') +
   [[84, 38, 10], [130, 26, -20], [172, 40, 30], [106, 52, 60], [154, 52, -40], [126, 44, 5]].map(([x, y, r]) => E(x, y, 12, 3.4, '#FFF0A0', { sw: 0, rot: r })).join(''))
 
-/** stepsBar с обходом бага тулкита: gsap.from по детям с CSS-transition на transform «залипает» (последние иконки остаются выше). */
+/**
+ * Своя полоска шагов (обход бага k.stepsBar: у .kx-step стоит CSS-transition на transform, а gsap.from по детям
+ * с stagger конфликтует с ним — часть иконок остаётся выше экрана). Анимируем контейнер, стили — из kit (kx-steps/kx-step).
+ */
 function stepsBar(k, icons) {
-  const bar = k.stepsBar(icons)
-  const kids = [...bar.el.children]
-  k.gsap.killTweensOf(kids)
-  k.gsap.set(kids, { clearProps: 'transform' })
-  k.gsap.fromTo(bar.el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
-  return bar
+  const el = document.createElement('div')
+  el.className = 'kx-steps'
+  el.innerHTML = icons.map(i => `<div class="kx-step">${/^</.test(i) ? i : `<span class="emoji">${i}</span>`}</div>`).join('')
+  k.root.appendChild(el)
+  const items = [...el.children]
+  k.fromTo(el, { y: -130 }, { y: 0, duration: 0.6, ease: 'back.out(2)' })
+  return {
+    el,
+    set(i) { items.forEach((s, j) => { s.classList.toggle('now', j === i); s.classList.toggle('done', j < i) }) },
+    done(i) { items[i]?.classList.add('done'); items[i]?.classList.remove('now') },
+  }
 }
 
 export default defineLevel({
