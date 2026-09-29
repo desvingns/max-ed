@@ -52,9 +52,12 @@ const duckArt = () => svg(200, 170,
   P('M38 50Q10 50 12 66Q34 74 44 66Z', '#FF9F43', { sw: 4.5 }) +
   E(56, 62, 8, 5, '#FF9EB1', { sw: 0 }) + C(74, 46, 5.5, INK, { sw: 0 }) + C(76, 44, 2, '#fff', { sw: 0 }) + HL(56, 34, 12, 6, -30, 0.7))
 
-const grapeArt = () => svg(110, 116,
-  SH(55, 110, 36, 5) + L('M55 18Q56 6 72 4', '#A26B3B', 6) + P('M56 14Q78 -2 96 12Q80 26 58 20Z', '#6BCB77', { sw: 4 }) +
-  S(circlePath(55, 64, 44), '#B388EB', '#8B62CF') + HL(38, 46, 10, 16, 20, 0.6))
+const grapeArt = () => {
+  const berry = (x, y) => S(circlePath(x, y, 27), '#B388EB', '#8B62CF') + HL(x - 9, y - 9, 6, 9, 20, 0.65)
+  return svg(120, 140,
+    SH(60, 134, 44, 5) + L('M60 50Q60 32 74 26', '#A26B3B', 6) + P('M62 36Q82 18 104 30Q88 46 66 42Z', '#6BCB77', { sw: 4 }) +
+    berry(36, 66) + berry(84, 66) + berry(60, 100))
+}
 
 const ball = (cx, cy, r) => S(circlePath(cx, cy, r), '#FF5A5F', '#E0474C') + HL(cx - r * 0.3, cy - r * 0.35, r * 0.28, r * 0.16, -30, 0.7)
 const cardArt = float => {
@@ -76,7 +79,7 @@ const ITEMS = {
   apple: { float: true, art: () => food('apple'), ar: SIZE.apple[1] / SIZE.apple[0], w: 120, rest: 12, big: 168 },
   potato: { float: false, art: () => food('potato'), ar: SIZE.potato[1] / SIZE.potato[0], w: 140, big: 200 },
   orange: { float: true, art: () => food('orange'), ar: SIZE.orange[1] / SIZE.orange[0], w: 124, rest: 16, big: 164 },
-  grape: { float: false, art: grapeArt, ar: 116 / 110, w: 96, big: 130 },
+  grape: { float: false, art: grapeArt, ar: 140 / 120, w: 96, big: 130 },
   egg: { float: false, art: () => food('egg'), ar: SIZE.egg[1] / SIZE.egg[0], w: 78, big: 108 },
 }
 const ORDER = ['apple', 'potato', 'orange', 'grape', 'egg']
