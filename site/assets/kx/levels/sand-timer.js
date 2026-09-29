@@ -71,6 +71,9 @@ export default defineLevel({
     const emoQ = new Map()
     const emo = (c, name) => { const p = (emoQ.get(c) ?? Promise.resolve()).then(() => (k.alive ? c.emote(name) : null)).catch(() => {}); emoQ.set(c, p); return p }
     const tell = (c, id, name) => { if (name) emo(c, name); return k.tell(c, id) }
+    // реплики идут по очереди, но не держат игру
+    let chain = Promise.resolve()
+    const speak = fn => { chain = chain.then(() => (k.alive ? fn() : null)).catch(() => {}); return chain }
 
     k.kitchenBg()
     const pyx = k.pyx({ x: 250 })
@@ -148,9 +151,10 @@ export default defineLevel({
     k.popIn(zones.map(z => z.el), 0.15)
     k.sfx('pop')
     await k.wait(600)
-    await tell(pyx, 'sizes', 'point')
-    // подсветим по очереди: маленькие — средние — большие
-    for (const z of zones) { gsap.fromTo(z.el, { scale: 1.12 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1.4,0.4)' }); k.sfx('tick'); await k.wait(650) }
+    // подсветим по очереди (маленькие — средние — большие), пока Пых объясняет
+    const sizesLine = tell(pyx, 'sizes', 'point')
+    for (const z of zones) { gsap.fromTo(z.el, { scale: 1.12 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1.4,0.4)' }); k.sfx('tick'); await k.wait(1100) }
+    await sizesLine
 
     const ORDER = { small: 0, medium: 1, big: 2 }
     const sortRound = (items, prompt) => k.dnd({
@@ -162,13 +166,14 @@ export default defineLevel({
         gsap.fromTo(z.el, { scale: 1.1 }, { scale: 1, duration: 0.5, ease: 'elastic.out(1.4,0.4)' })
         k.sparkle(c.x, c.y - 30, 5)
         k.sfx('ding', { vol: 0.5 })
-        await tell(pyx, it.say, 'happy')
+        speak(() => tell(pyx, it.say, 'happy'))
+        await k.wait(250)
         gsap.to(it.el, { scale: 0.1, opacity: 0, duration: 0.3 })
       },
       onWrong: async (it, z) => {
         if (!z) return
         k.sfx('wrong', { vol: 0.5 })
-        await tell(pyx, ORDER[z.id] < ORDER[it.size] ? 'too_short' : 'too_long', 'shake')
+        speak(() => tell(pyx, ORDER[z.id] < ORDER[it.size] ? 'too_short' : 'too_long', 'shake'))
       },
     })
     const mkItems = list => list.map(([id, size, say, color, art, w, h, o], i) => ({
@@ -185,6 +190,7 @@ export default defineLevel({
     k.popIn(r1.map(i => i.el), 0.12)
     await k.wait(500)
     await sortRound(r1, 'q_sort1')
+    await chain
     await k.wait(400)
     r1.forEach(i => i.el.remove())
 
@@ -198,6 +204,7 @@ export default defineLevel({
     k.popIn(r2.map(i => i.el), 0.12)
     await k.wait(500)
     await sortRound(r2, 'q_sort2')
+    await chain
     await k.wait(500)
     r2.forEach(i => i.el.remove())
 

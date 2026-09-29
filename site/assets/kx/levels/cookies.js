@@ -24,9 +24,9 @@ const PATH = {
 }
 const CUT_NAME = { star: 'star', heart: 'heart', circle: 'circle', tri: 'triangle', sq: 'square' }
 
-const DOUGH = '#F3D9A0', DOUGH_SH = '#DDB76E', BAKED = '#D9964A', BAKED_SH = '#B97431'
+const DOUGH = '#F3D9A0', DOUGH_SH = '#DDB76E', DOUGH_CK = '#F9E6B8', DOUGH_CK_SH = '#E6C27E', BAKED = '#D9964A', BAKED_SH = '#B97431'
 const cookieArt = (shape, o = {}) => {
-  const base = o.baked ? BAKED : DOUGH, sh = o.baked ? BAKED_SH : DOUGH_SH
+  const base = o.baked ? BAKED : DOUGH_CK, sh = o.baked ? BAKED_SH : DOUGH_CK_SH
   const d = PATH[shape]
   const id = nid('ck')
   const icing = o.icing ? `<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(75 78) scale(.8) translate(-75 -78)"><path d="${d}" fill="${o.icing}" stroke="${o.icing}" stroke-width="9" stroke-linejoin="round"/></g></g>` : ''
@@ -89,7 +89,7 @@ export default defineLevel({
     const board = k.food('board', 850, 700, 840, { z: 3 })
     k.fromTo(board, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' })
     const clamp01 = v => Math.max(0, Math.min(1, v))
-    const SH_C = { x: 850, y: 590 }
+    const SH_C = { x: 850, y: 640 }
     const bump = (el, s = 1.15) => gsap.fromTo(el, { scale: 1 }, { scale: s, yoyo: true, repeat: 1, duration: 0.14 })
 
     await k.wait(500)
@@ -135,7 +135,7 @@ export default defineLevel({
     const cutters = ORDER.map(shape => {
       const i = shuffledShapes.indexOf(shape)
       const x = 500 + i * 150
-      return { id: shape, shape, el: k.food('cookieCutter', x, 875, CUTW, { z: 20, args: [shape] }) }
+      return { id: shape, shape, el: k.food('cookieCutter', x, 875, CUTW, { z: 20, args: [CUT_NAME[shape]] }) }
     })
     k.fromTo(cutters.map(c => c.el), { y: 250, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.6)' })
     await k.wait(400)
@@ -200,7 +200,7 @@ export default defineLevel({
     const st = k.stove()
     const knobs = [...st.el.querySelectorAll('.knob')]
     const light = st.el.querySelector('.power-light')
-    await k.play(gsap.to(grp, { y: 95, duration: 0.5, ease: 'power2.inOut' }))
+    await k.play(gsap.to(grp, { y: 40, duration: 0.5, ease: 'power2.inOut' }))
     await k.tell(pyx, 'oven_adult', 'point')
     const mb = k.bubble('👩‍🍳', 330, 250, { w: 230, h: 190, font: 90 })
     k.sfx('magic')
@@ -316,7 +316,7 @@ export default defineLevel({
       bump(target.ck, 1.12)
     }
     // остальные две фигурки — посыпкой
-    const jar = k.prop(sprinkleJarArt(), 1220, 640, 130, 170, { z: 14 })
+    const jar = k.prop(sprinkleJarArt(), 1345, 662, 130, 170, { z: 14 })
     k.popIn(jar)
     await k.wait(400)
     const bits = []

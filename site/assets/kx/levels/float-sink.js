@@ -178,7 +178,7 @@ export default defineLevel({
       // прогноз: две карточки, «правильного» нет — любой выбор принимается
       let guess = null
       await k.choose({
-        prompt: k.key('q_guess'), host: pyx,
+        prompt: i < 2 ? k.key('q_guess') : null, host: pyx,
         options: [
           { id: 'float', art: cardArt(true), color: '#4D96FF', outcome: async () => { guess = 'float'; await k.tell(pyx, 'g_float') } },
           { id: 'sink', art: cardArt(false), color: '#B388EB', outcome: async () => { guess = 'sink'; await k.tell(pyx, 'g_sink') } },
@@ -188,7 +188,7 @@ export default defineLevel({
       // проверка: бросаем в воду
       await k.dnd({
         items: [{ id, el }], zones: [{ id: 'tub', el: zone, pad: 30 }], accept: () => true,
-        prompt: k.key('q_drop'), host: pyx,
+        prompt: i === 0 ? k.key('q_drop') : null, host: pyx,
         onCorrect: async () => { await drop(el, id, i + 1) },
       })
       const right = (guess === 'float') === m.float

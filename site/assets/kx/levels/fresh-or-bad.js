@@ -62,6 +62,9 @@ export default defineLevel({
     const emoQ = new Map()
     const emo = (c, name) => { const p = (emoQ.get(c) ?? Promise.resolve()).then(() => (k.alive ? c.emote(name) : null)).catch(() => {}); emoQ.set(c, p); return p }
     const tell = (c, id, name) => { if (name) emo(c, name); return k.tell(c, id) }
+    // реплики идут по очереди, но не держат игру: малыш может нести следующий продукт, пока Пых договаривает
+    let chain = Promise.resolve()
+    const speak = fn => { chain = chain.then(() => (k.alive ? fn() : null)).catch(() => {}); return chain }
 
     k.kitchenBg()
     const pyx = k.pyx({ x: 250 })
@@ -115,11 +118,11 @@ export default defineLevel({
         if (z.id === 'basket') {
           await into(it, z)
           k.sfx('yum', { vol: 0.6 })
-          await tell(pyx, 'fresh_ok', 'happy')
+          speak(() => tell(pyx, 'fresh_ok', 'happy'))
         } else if (z.id === 'bin') {
           await into(it, z)
           k.sfx('clonk')
-          await tell(pyx, it.say ?? 'mold_bin', 'laugh')
+          speak(() => tell(pyx, it.say ?? 'mold_bin', 'laugh'))
         } else {
           await into(it, z)
           const c = k.centerOf(z.el)
@@ -137,11 +140,11 @@ export default defineLevel({
       onWrong: async (it, z) => {
         if (!z) return
         k.sfx('wrong', { vol: 0.5 })
-        if (it.kind === 'ask') return tell(pyx, 'adult_wrong', 'shake')
-        if (z.id === 'adult') return tell(pyx, 'no_need', 'nod')
-        if (it.kind === 'fresh') return tell(pyx, 'wrong_fresh_bin', 'surprised')
+        if (it.kind === 'ask') return speak(() => tell(pyx, 'adult_wrong', 'shake'))
+        if (z.id === 'adult') return speak(() => tell(pyx, 'no_need', 'nod'))
+        if (it.kind === 'fresh') return speak(() => tell(pyx, 'wrong_fresh_bin', 'surprised'))
         k.sfx('yuck', { vol: 0.5 })
-        return tell(pyx, 'wrong_bad_basket', 'shake')
+        return speak(() => tell(pyx, 'wrong_bad_basket', 'shake'))
       },
     })
 
@@ -175,6 +178,7 @@ export default defineLevel({
       bread.el.style.zIndex = '20'
     }
     await sortRound(items1, 'q_sort1')
+    await chain
     await k.wait(300)
     await closeItems(items1)
 
@@ -210,15 +214,17 @@ export default defineLevel({
     })
     await k.wait(900)
     await sortRound(milk, 'q_sort2')
+    await chain
     await k.wait(300)
     await closeItems(milk)
 
     // ── 3. спроси взрослого: срок годности ──
     await tell(pyx, 'r3_intro', 'point')
-    const yog = mk(yogurtLabeled(), 800, 850, 150, 163, { kind: 'ask' })
+    const yog = mk(yogurtLabeled(), 800, 850, 180, 196, { kind: 'ask' })
     k.popIn(yog.el)
     await k.wait(500)
     await sortRound([yog], 'q_adult')
+    await chain
     await k.wait(300)
 
     // ── 4. вывод ──

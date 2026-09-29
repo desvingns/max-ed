@@ -45,10 +45,31 @@ const PIECES = {
 const SPOTS = [[80, 82], [118, 78], [154, 76], [190, 78], [224, 84], [98, 91], [136, 90], [172, 91], [208, 92], [116, 84], [152, 85], [188, 85]] // локальные (в кастрюле) центры
 const POT = { x: 570, y: 218 }
 
+// ── речь и эмоции без наложений ──
+// «Корневые» эмоции героя (ура, смех, прыжок…) нельзя запускать внахлёст: gsap путает SVG-origin'ы, и герой «уезжает» с экрана.
+const ROOT_DUR = { cheer: 1.5, jump: 1.1, laugh: 1.0, dance: 1.8, happy: 0.85, surprised: 1.3, sad: 2.0, spin: 0.9, bow: 1.3 }
+function speech(k) {
+  const busy = new Map()
+  const gate = async (c, d) => {
+    const w = (busy.get(c) ?? 0) - performance.now()
+    if (w > 0) await k.wait(w)
+    busy.set(c, performance.now() + d * 1000)
+  }
+  const emote = async (c, e) => {
+    if (!c || !e) return
+    if (ROOT_DUR[e]) await gate(c, ROOT_DUR[e])
+    if (k.alive) c.emote(e)
+  }
+  const tell = async (c, id, e) => { emote(c, e); await tell(c, id) }
+  const praise = async c => { await gate(c, 1.1); await praise(c) }
+  return { emote, tell, praise }
+}
+
 export default defineLevel({
   id: 'veg-soup',
   async run(k) {
     const g = k.gsap
+    const { emote, tell, praise } = speech(k)
     const FLOOR = k.layout.floorY
     k.kitchenBg()
     const st = k.stove()
@@ -77,8 +98,8 @@ export default defineLevel({
     }
 
     await k.wait(400)
-    await k.tell(pyx, 'hello', 'wave')
-    await k.tell(hamster, 'shchyok_hi', 'happy')
+    await tell(pyx, 'hello', 'wave')
+    await tell(hamster, 'shchyok_hi', 'happy')
     const bar = stepsBar(k, ['🧺', '🔥', '🥄', thumb('saltShaker'), thumb('ladle')])
     bar.set(0)
 
@@ -118,18 +139,18 @@ export default defineLevel({
           k.sfx('boing', { vol: 0.6 })
           if (it.id === 'candy') {
             g.fromTo(it.el, { y: 0 }, { y: -50, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' })
-            hamster.emote('happy')
-            await k.tell(hamster, 'candy')
+            emote(hamster, 'happy')
+            await tell(hamster, 'candy')
           } else {
             g.fromTo(it.el, { scaleY: 1, scaleX: 1 }, { scaleY: 0.62, scaleX: 1.2, transformOrigin: '50% 100%', duration: 0.5, yoyo: true, repeat: 1, ease: 'sine.inOut' })
             for (let i = 0; i < 5; i++) {
               const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFB3D9;box-shadow:inset -2px -2px 0 #E886B8"></div>', it.home.x + k.rand(-28, 28), it.home.y + 20, 14, 18, { z: 9 })
               k.to(d, { y: k.rand(50, 90), opacity: 0.2, duration: 0.7, delay: i * 0.1, ease: 'power1.in', onComplete: () => d.remove() })
             }
-            pyx.emote('laugh')
-            await k.tell(pyx, 'icecream')
+            emote(pyx, 'laugh')
+            await tell(pyx, 'icecream')
           }
-          if (wrongTaps === 2) await k.tell(pyx, 'veg_hint', 'point')
+          if (wrongTaps === 2) await tell(pyx, 'veg_hint', 'point')
         })
       })
     }
@@ -162,7 +183,7 @@ export default defineLevel({
           .to(el, { y: `+=${-4}`, rotation: `+=${n % 2 ? 14 : -14}`, duration: 0.8 + n * 0.1, repeat: -1, yoyo: true, ease: 'sine.inOut' })
         v.pieces = [...(v.pieces ?? []), { el, spot }]
       }
-      speakQ = speakQ.then(() => k.tell(pyx, v.id))
+      speakQ = speakQ.then(() => tell(pyx, v.id))
     }
     await k.tapAll(vegs.map(v => v.el), {
       prompt: k.key('basket'), host: pyx,
@@ -170,12 +191,12 @@ export default defineLevel({
     })
     await speakQ
     await reacting
-    await k.tell(pyx, 'count4', 'cheer')
+    await tell(pyx, 'count4', 'cheer')
     // конфеты и мороженое — на потом, корзина уезжает
     const bads = items.filter(i => i.kind === 'bad').map(i => i.el)
-    await k.tell(pyx, 'dessert', 'laugh')
+    await tell(pyx, 'dessert', 'laugh')
     fadeAway([bBack, bFront, ...bads], 120)
-    await k.tell(pyx, 'cut_note', 'point')
+    await tell(pyx, 'cut_note', 'point')
 
     // ───── 2. плита — только со взрослым ─────
     bar.set(1)
@@ -189,7 +210,7 @@ export default defineLevel({
       g.fromTo(b, { scale: 0 }, { scale: 1, duration: 0.25, ease: 'back.out(2)' })
       g.to(b, { y: -k.rand(6, 16), opacity: 0, duration: 0.5, delay: 0.3, onComplete: () => b.remove() })
     })
-    await k.tell(pyx, 'warm', 'point')
+    await tell(pyx, 'warm', 'point')
     for (const b of pot.querySelectorAll('.bubble')) {
       g.to(b, { opacity: 1, duration: 0.3, delay: 0.2 })
       g.to(b, { y: -k.rand(8, 16), duration: k.rand(0.3, 0.5), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: k.rand(0, 0.3) })
@@ -234,18 +255,18 @@ export default defineLevel({
     g.to(ladle, { x: 0, y: -60, rotation: 180, duration: 0.5, ease: 'power2.inOut' })
     k.sparkle(720, 300, 8)
     k.sfx('sparkle')
-    await k.tell(pyx, 'stir_ok', 'cheer')
+    await tell(pyx, 'stir_ok', 'cheer')
 
     // ───── 4. пробуем — соли не хватает ─────
     bar.set(3)
     const spoon = k.prop(kitchen.spoonWood(), 1120, 590, 60, 200, { z: 8 })
     spoon.style.transform = 'rotate(35deg)'
-    const taste = async (lineId, emote) => {
+    const taste = async (lineId, em) => {
       const from = k.centerOf(spoon), mouth = { x: 1400, y: 805 }
       await k.play(g.to(spoon, { x: mouth.x - from.x, y: mouth.y - from.y, rotation: 10, duration: 0.6, ease: 'power2.inOut' }))
       k.sfx('yum', { vol: 0.5 })
-      hamster.emote(emote)
-      await k.tell(hamster, lineId)
+      emote(hamster, em)
+      await tell(hamster, lineId)
       await k.play(g.to(spoon, { x: 0, y: 0, rotation: 0, duration: 0.5, ease: 'power2.inOut' }))
     }
     k.popIn(spoon)
@@ -263,7 +284,7 @@ export default defineLevel({
     }
     await k.wait(600)
     fadeAway([shaker], -60)
-    await k.tell(pyx, 'salt_ok', 'cheer')
+    await tell(pyx, 'salt_ok', 'cheer')
     await taste('taste2', 'laugh')
     k.burst(1300, 700, 8)
 
@@ -320,7 +341,7 @@ export default defineLevel({
     await k.tapAll(bowls, { prompt: k.key('q_bowls'), host: pyx, onTap: el => scoop(bowls.indexOf(el)) })
     await scoopQ
     fadeAway([ladle], -40)
-    await k.tell(pyx, 'equal', 'cheer')
+    await tell(pyx, 'equal', 'cheer')
     k.burst(1270, 620, 8)
 
     // ───── 7. суп горячий: дуем; Щёчкин пробует ─────
@@ -331,18 +352,18 @@ export default defineLevel({
       g.timeline({ repeat: 3 }).fromTo(p, { y: 0, opacity: 0, scale: 0.6 }, { y: -30, opacity: 0.9, scale: 0.9, duration: 0.9, ease: 'none' }).to(p, { y: -60, opacity: 0, scale: 1.1, duration: 0.9, ease: 'none' })
       return p
     })
-    await k.tell(pyx, 'hot', 'point')
+    await tell(pyx, 'hot', 'point')
     steams.forEach(s => s.remove())
     const hc = k.centerOf(hamster.el)
     k.sfx('yum', { vol: 0.5 })
     await k.play(g.to(bowls[2], { x: hc.x - BX[2] - 20, y: hc.y - 678 - 30, scale: 0.6, duration: 0.7, ease: 'power2.inOut' }))
-    hamster.emote('dance')
-    await k.tell(hamster, 'yum', 'cheer')
+    emote(hamster, 'dance')
+    await tell(hamster, 'yum', 'cheer')
     k.burst(1440, 760, 10)
     g.to(bowls[2], { opacity: 0, duration: 0.3 })
     bar.done(4)
-    await k.tell(pyx, 'sum', 'point')
-    await k.tell(hamster, 'bye', 'cheer')
+    await tell(pyx, 'sum', 'point')
+    await tell(hamster, 'bye', 'cheer')
     k.burst(800, 420, 14)
   },
 })

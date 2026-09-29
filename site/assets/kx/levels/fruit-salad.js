@@ -26,10 +26,31 @@ const BAN = [[1196, 622], [1238, 618], [1280, 622]]
 const BER = [[1218, 642], [1270, 640]]
 const APP = [[1170, 634], [1312, 634]]
 
+// ── речь и эмоции без наложений ──
+// «Корневые» эмоции героя (ура, смех, прыжок…) нельзя запускать внахлёст: gsap путает SVG-origin'ы, и герой «уезжает» с экрана.
+const ROOT_DUR = { cheer: 1.5, jump: 1.1, laugh: 1.0, dance: 1.8, happy: 0.85, surprised: 1.3, sad: 2.0, spin: 0.9, bow: 1.3 }
+function speech(k) {
+  const busy = new Map()
+  const gate = async (c, d) => {
+    const w = (busy.get(c) ?? 0) - performance.now()
+    if (w > 0) await k.wait(w)
+    busy.set(c, performance.now() + d * 1000)
+  }
+  const emote = async (c, e) => {
+    if (!c || !e) return
+    if (ROOT_DUR[e]) await gate(c, ROOT_DUR[e])
+    if (k.alive) c.emote(e)
+  }
+  const tell = async (c, id, e) => { emote(c, e); await tell(c, id) }
+  const praise = async c => { await gate(c, 1.1); await praise(c) }
+  return { emote, tell, praise }
+}
+
 export default defineLevel({
   id: 'fruit-salad',
   async run(k) {
     const g = k.gsap
+    const { emote, tell, praise } = speech(k)
     const FLOOR = k.layout.floorY
     k.kitchenBg()
     const pyx = k.pyx({ x: 230 })
@@ -41,8 +62,8 @@ export default defineLevel({
     const fadeAway = (els, y = 80) => { g.to(els, { y: `+=${y}`, opacity: 0, duration: 0.4, ease: 'power2.in' }); k.after(450, () => els.forEach(e => e.remove())) }
 
     await k.wait(400)
-    await k.tell(pyx, 'hello', 'wave')
-    await k.tell(kapa, 'kapa_hi', 'happy')
+    await tell(pyx, 'hello', 'wave')
+    await tell(kapa, 'kapa_hi', 'happy')
     const bar = stepsBar(k, [thumb('banana'), thumb('strawberry'), thumb('apple'), thumb('lemon'), '🥄', '🥣'])
     bar.set(0)
 
@@ -61,7 +82,7 @@ export default defineLevel({
     const coreA = slicesA.flatMap(s => [...s.querySelectorAll('.core')])
     const darkTw = g.to(fleshA, { fill: BROWN, duration: 45, ease: 'none' })
     const darkTw2 = g.to(coreA, { fill: CORE_DARK, duration: 45, ease: 'none' })
-    await k.tell(pyx, 'apple_pre', 'point')
+    await tell(pyx, 'apple_pre', 'point')
 
     const pieces = [] // { el, spot:[x,y] } — всё, что лежит в большой миске
     const track = (el, spot) => pieces.push({ el, x: spot[0], y: spot[1] })
@@ -80,8 +101,8 @@ export default defineLevel({
     g.to(resB.tail, { y: -40, opacity: 0, duration: 0.4 })
     k.after(450, () => resB.clear())
     await kapaTo({ h: -70, s: 1.3, b: 1.08 })
-    kapa.emote('happy')
-    await k.tell(kapa, 'kapa_yellow')
+    emote(kapa, 'happy')
+    await tell(kapa, 'kapa_yellow')
 
     // ───── 2. клубника: пополам ─────
     bar.set(1)
@@ -93,7 +114,7 @@ export default defineLevel({
       food: 'strawberry', el: berry, at: { x: 530, y: 655 }, width: 190, mode: 'split', cuts: [0.5], tol: 0.14, gap: 44,
       prompt: k.key('q_berry'), host: pyx,
     })
-    await k.tell(pyx, 'halves', 'happy')
+    await tell(pyx, 'halves', 'happy')
     // две половинки прыгают в миску
     const halfEls = [0, 1].map(i => {
       const x = 530 + (i === 0 ? -50 : 50)
@@ -112,27 +133,27 @@ export default defineLevel({
     k.sfx('plop')
     await k.wait(1400)
     await kapaTo({ h: 235, s: 1.3, b: 1.05 })
-    await k.tell(kapa, 'kapa_red', 'jump')
+    await tell(kapa, 'kapa_red', 'jump')
     fadeAway([board])
 
     // ───── 3. прошло время: яблоко потемнело (таймлапс) ─────
     bar.set(2)
-    await k.tell(pyx, 'time', 'surprised')
+    await tell(pyx, 'time', 'surprised')
     const hourglass = k.badge('⏳', 810, 560, { size: 110, color: '#FFB703' })
     k.sfx('tick')
     await k.play(g.to([darkTw, darkTw2], { progress: 1, duration: 2.4, ease: 'power1.inOut' }))
     g.to(hourglass, { scale: 0, opacity: 0, duration: 0.3 })
     k.after(350, () => hourglass.remove())
     await kapaTo({ h: 0, s: 0.75, b: 0.85 })
-    kapa.emote('surprised')
-    await k.tell(kapa, 'apple_dark')
-    await k.tell(pyx, 'why', 'point')
+    emote(kapa, 'surprised')
+    await tell(kapa, 'apple_dark')
+    await tell(pyx, 'why', 'point')
 
     // ───── 4. второе яблоко: режем и спасаем ─────
     const board2 = k.food('board', 530, 690, 380, { z: 3 })
     const plateB = k.prop(kitchen.plate(), 1000, 705, 200, 70, { z: 0 })
     k.fromTo([board2, plateB], { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' })
-    await k.tell(pyx, 'apple2', 'point')
+    await tell(pyx, 'apple2', 'point')
     const apple = k.food('apple', 530, 650, 220, { z: 6 })
     k.fromTo(apple, { y: -420, rotation: -10, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.6, ease: 'bounce.out' })
     k.sfx('boing', { vol: 0.5 })
@@ -153,9 +174,9 @@ export default defineLevel({
     await k.choose({
       prompt: k.key('q_save'), host: pyx, skill: 'science:apple',
       options: k.shuffle([
-        { id: 'salt', art: `<div style="width:150px;height:220px;display:grid;place-items:center">${food('saltShaker')}</div>`, color: '#B8C0CC', outcome: async () => { k.sfx('yuck', { vol: 0.5 }); await k.tell(pyx, 'save_salt', 'shake') } },
-        { id: 'wait', art: '<span class="emoji">⏳</span>', color: '#B388EB', outcome: async () => { kapa.emote('think'); await k.tell(kapa, 'save_wait') } },
-        { id: 'lemon', art: food('lemon'), color: '#FFD93D', correct: true, outcome: async () => { k.sfx('magic'); await k.tell(pyx, 'save_ok', 'cheer') } },
+        { id: 'salt', art: `<div style="width:150px;height:220px;display:grid;place-items:center">${food('saltShaker')}</div>`, color: '#B8C0CC', outcome: async () => { k.sfx('yuck', { vol: 0.5 }); await tell(pyx, 'save_salt', 'shake') } },
+        { id: 'wait', art: '<span class="emoji">⏳</span>', color: '#B388EB', outcome: async () => { emote(kapa, 'think'); await tell(kapa, 'save_wait') } },
+        { id: 'lemon', art: food('lemon'), color: '#FFD93D', correct: true, outcome: async () => { k.sfx('magic'); await tell(pyx, 'save_ok', 'cheer') } },
       ]),
     })
     // выжимаем лимон: три нажатия
@@ -178,9 +199,9 @@ export default defineLevel({
     // сравниваем
     const sad = k.bubble('😕', 810, 560, { w: 130, h: 125, font: 60 })
     const glad = k.bubble('😋', 1000, 560, { w: 130, h: 125, font: 60 })
-    await k.tell(kapa, 'compare', 'happy')
+    await tell(kapa, 'compare', 'happy')
     // тёмное яблоко — Пыху
-    await k.tell(pyx, 'dark_eat', 'laugh')
+    await tell(pyx, 'dark_eat', 'laugh')
     const mouth = k.centerOf(pyx.el)
     k.sfx('crunch')
     await k.play(g.to(slicesA, { x: `+=${mouth.x - 810}`, y: `+=${mouth.y - 690}`, scale: 0.3, opacity: 0, duration: 0.7, stagger: 0.1, ease: 'power2.in' }))
@@ -230,7 +251,7 @@ export default defineLevel({
     k.after(450, () => spoon.remove())
     k.sparkle(1255, 600, 8)
     await kapaTo({ h: 0, s: 1, b: 1 })
-    await k.tell(pyx, 'stir_ok', 'cheer')
+    await tell(pyx, 'stir_ok', 'cheer')
 
     // ───── 7. по трём мискам: считаем ─────
     bar.set(5)
@@ -262,7 +283,7 @@ export default defineLevel({
     }
     await k.tapAll(small, { prompt: k.key('q_serve'), host: pyx, onTap: (el, i) => scoop(small.indexOf(el)) })
     await scoopQ
-    await k.tell(pyx, 'serve_ok', 'cheer')
+    await tell(pyx, 'serve_ok', 'cheer')
     spoon2.remove()
     bar.done(5)
 
@@ -270,13 +291,13 @@ export default defineLevel({
     const to = k.centerOf(kapa.el), from = k.centerOf(small[0])
     k.sfx('crunch')
     await k.play(g.to(small[0], { x: to.x - from.x, y: to.y - from.y - 40, scale: 0.4, opacity: 0, duration: 0.8, ease: 'power2.in' }))
-    kapa.emote('dance')
+    emote(kapa, 'dance')
     await k.play(g.to(tint, { h: 360, s: 1.3, duration: 1.6, ease: 'none', onUpdate: paint }))
     tint.h = 0; paint()
-    await k.tell(kapa, 'kapa_yum', 'cheer')
+    await tell(kapa, 'kapa_yum', 'cheer')
     k.burst(1455, 700, 10)
-    await k.tell(pyx, 'sum', 'point')
-    await k.tell(kapa, 'bye', 'cheer')
+    await tell(pyx, 'sum', 'point')
+    await tell(kapa, 'bye', 'cheer')
     k.burst(800, 420, 14)
   },
 })

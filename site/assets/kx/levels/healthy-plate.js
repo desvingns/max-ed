@@ -208,7 +208,7 @@ export default defineLevel({
             else { await say(chukh, 'ok_sweet', 'nod') }
           } else if (z.id === 'grain' && !said.has('grain')) { said.add('grain'); await say(kapa, 'ok_grain', 'nod') }
           else if (z.id === 'prot' && !said.has('prot')) { said.add('prot'); await say(kapa, 'ok_prot', 'nod') }
-          else await k.praise(chukh)
+          else { k.sfx('correct', { vol: 0.5 }); await k.wait(250) }
         },
         onWrong: async (it, z) => {
           wrong++

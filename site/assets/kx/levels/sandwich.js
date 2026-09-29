@@ -72,10 +72,31 @@ function makeStack(k, at) {
   }
 }
 
+// ── речь и эмоции без наложений ──
+// «Корневые» эмоции героя (ура, смех, прыжок…) нельзя запускать внахлёст: gsap путает SVG-origin'ы, и герой «уезжает» с экрана.
+const ROOT_DUR = { cheer: 1.5, jump: 1.1, laugh: 1.0, dance: 1.8, happy: 0.85, surprised: 1.3, sad: 2.0, spin: 0.9, bow: 1.3 }
+function speech(k) {
+  const busy = new Map()
+  const gate = async (c, d) => {
+    const w = (busy.get(c) ?? 0) - performance.now()
+    if (w > 0) await k.wait(w)
+    busy.set(c, performance.now() + d * 1000)
+  }
+  const emote = async (c, e) => {
+    if (!c || !e) return
+    if (ROOT_DUR[e]) await gate(c, ROOT_DUR[e])
+    if (k.alive) c.emote(e)
+  }
+  const tell = async (c, id, e) => { emote(c, e); await tell(c, id) }
+  const praise = async c => { await gate(c, 1.1); await praise(c) }
+  return { emote, tell, praise }
+}
+
 export default defineLevel({
   id: 'sandwich',
   async run(k) {
     const g = k.gsap
+    const { emote, tell, praise } = speech(k)
     const FLOOR = k.layout.floorY
     k.kitchenBg()
     const pyx = k.pyx({ x: 250 })
@@ -94,19 +115,19 @@ export default defineLevel({
       k.sfx('crunch')
       await k.play(g.to(stack.el, { x: to.x - from.x, y: to.y - from.y - 60, scale: 0.3, opacity: 0, duration: 0.7, ease: 'power2.in' }))
       stack.el.remove()
-      guest.emote('happy')
+      emote(guest, 'happy')
     }
 
     await k.wait(500)
-    await k.tell(pyx, 'hello', 'wave')
+    await tell(pyx, 'hello', 'wave')
 
     // ───── раунд 1: бутерброд для Буси (с сыром, без колбасы) ─────
     busya.face('left')
     const bb = k.bubble(order([['cheeseSlice', 74], ['sausageSlice', 62, true]]), 1250, 585, { w: 230, h: 175, tail: 'right' })
-    await k.tell(busya, 'busya_order', 'happy')
+    await tell(busya, 'busya_order', 'happy')
     const s1 = stepsBar(k, [thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), '🥪'])
     s1.set(0)
-    await k.tell(pyx, 'recipe', 'point')
+    await tell(pyx, 'recipe', 'point')
 
     const trayBack = k.prop('<div style="width:100%;height:100%;border-radius:46px;background:rgba(255,255,255,.86);box-shadow:inset 0 0 0 8px rgba(59,47,79,.14)"></div>', 760, TRAY.y, 800, 170, { z: 0 })
     k.popIn(trayBack)
@@ -135,7 +156,7 @@ export default defineLevel({
           wrong++
           pyx.emote('shake')
           k.fx.wiggle(it.el)
-          await k.tell(pyx, `w_${it.kind}`)
+          await tell(pyx, `w_${it.kind}`)
           if (wrong >= 2) { const stop = k.fx.pulse(good.el, '#FFFFFF'); k.after(2600, stop) }
         },
       })
@@ -158,25 +179,25 @@ export default defineLevel({
     stack.doneSpread()
     g.to(knife, { opacity: 0, duration: 0.25 })
     k.sparkle(PLATE.x, PLATE.y - 30, 6)
-    await k.tell(pyx, 'butter_ok', 'happy')
+    await tell(pyx, 'butter_ok', 'happy')
     s1.set(2)
     await place('cheese', ['bread', 'butter'], 'q_cheese', from => stack.cheese(from))
     s1.set(3)
     await place('bread', ['cheese', 'butter'], 'q_top', from => stack.top(from))
     s1.done(3)
     k.sparkle(PLATE.x, PLATE.y - 40, 8)
-    await k.tell(pyx, 'top_ok', 'cheer')
+    await tell(pyx, 'top_ok', 'cheer')
     g.to(trayBack, { opacity: 0, duration: 0.3 })
     await eat(stack, busya)
     g.to(bb, { scale: 0, opacity: 0, duration: 0.3, onComplete: () => bb.remove() })
-    await k.tell(busya, 'busya_eat', 'cheer')
+    await tell(busya, 'busya_eat', 'cheer')
     k.burst(1335, 640, 8)
-    await k.praise(pyx)
+    await praise(pyx)
     s1.hide()
 
     // ───── раунд 2: бутерброд для Щёчкина (с колбаской) — сам по порядку ─────
     const hb = k.bubble(order([['cheeseSlice', 70], ['sausageSlice', 44], ['sausageSlice', 44], ['sausageSlice', 44]]), 1400, 575, { w: 290, h: 175, tail: 'right' })
-    await k.tell(shchyok, 'shchyok_order', 'happy')
+    await tell(shchyok, 'shchyok_order', 'happy')
     const s2 = stepsBar(k, [thumb('breadSlice'), thumb('butter'), thumb('cheeseSlice'), thumb('sausageSlice'), '🥪'])
     s2.set(0)
     const stack2 = makeStack(k, PLATE)
@@ -205,26 +226,26 @@ export default defineLevel({
           g.to(knife, { opacity: 0, duration: 0.2 })
         } else if (step.id === 'cheese') await stack2.cheese(null)
         else if (step.id === 'sausage') {
-          await k.tell(pyx, 'sausage', 'point')
+          await tell(pyx, 'sausage', 'point')
           for (let n = 0; n < 3; n++) { await stack2.sausage(n, null); await k.sayNumber(n + 1) }
         } else if (step.id === 'top') await stack2.top(null)
       },
       onWrong: async () => {
         wrongs++
         pyx.emote('shake')
-        if (wrongs % 2 === 1) await k.tell(pyx, 'seq_wrong')
+        if (wrongs % 2 === 1) await tell(pyx, 'seq_wrong')
         else await k.oops(pyx)
       },
     })
     s2.done(4)
     k.sparkle(PLATE.x, PLATE.y - 40, 8)
-    await k.tell(pyx, 'top_ok', 'cheer')
+    await tell(pyx, 'top_ok', 'cheer')
     await eat(stack2, shchyok)
     g.to(hb, { scale: 0, opacity: 0, duration: 0.3, onComplete: () => hb.remove() })
-    await k.tell(shchyok, 'shchyok_eat', 'cheer')
+    await tell(shchyok, 'shchyok_eat', 'cheer')
     k.burst(1495, 640, 8)
-    await k.tell(pyx, 'sum', 'point')
-    await k.tell(busya, 'bye', 'cheer')
+    await tell(pyx, 'sum', 'point')
+    await tell(busya, 'bye', 'cheer')
     k.burst(800, 420, 14)
   },
 })

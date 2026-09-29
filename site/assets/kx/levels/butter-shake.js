@@ -10,7 +10,7 @@ const BODY = 'M40 62L180 62L198 96L198 270Q198 290 178 290L42 290Q22 290 22 270L
 const LV = { bottom: 284, span: 206 } // уровень 0..1 → y внутри банки
 const lvY = l => LV.bottom - LV.span * l
 const HALF = 0.5, GOAL = [0.36, 0.68] // отпустить можно в этом диапазоне; уровень «прилипает» к полоске
-const CREAM = '#FFF3C6', THICK = '#FFE99A', WHEY = '#D9ECFA', BUTTER = '#FFD84D'
+const CREAM = '#FFF3C6', THICK = '#FFE99A', WHEY = '#BFE1F7', BUTTER = '#FFD84D'
 
 let uid = 0
 const jarArt = () => {
@@ -282,7 +282,7 @@ export default defineLevel({
       onEnd: () => k.to(knife, { opacity: 0.0, duration: 0.2 }),
       onProgress: (p, pos) => {
         if (pos) {
-          k.gsap.set(knife, { x: pos.x - (bc.x + 90) + 30, y: pos.y - (bc.y - 60) - 30, opacity: 1 })
+          k.gsap.set(knife, { x: pos.x - (bc.x + 90), y: pos.y - (bc.y - 60) - 66, rotation: 38, transformOrigin: '50% 92%', opacity: 1 })
           const sc = rB.w / 160, lx = (pos.x - rB.x) / sc, ly = (pos.y - rB.y - (rB.h - 154 * sc) / 2) / sc
           if (!last || Math.hypot(lx - last.x, ly - last.y) > 7) {
             last = { x: lx, y: ly }

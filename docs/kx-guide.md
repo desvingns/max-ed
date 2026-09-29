@@ -114,6 +114,14 @@ export default {
 | `k.popIn(els)`, `k.burst(x,y,n)`, `k.sparkle(x,y,n)`, `k.sfx(name)` | эффекты. `k.sfx`: `chop swing crunch sizzle pour sprinkle stir scrub ding tick yum yuck flip popcorn sneeze grate bloop clonk` + звуки игры `tap pop plop bubble squeak correct wrong boing whoosh swish slide sparkle star coin magic fanfare tada splash drum thud page` |
 | `k.centerOf(el)`, `k.rectOf(el)`, `k.rand(a,b)`, `k.pick(arr)`, `k.shuffle(arr)`, `k.gsap` | утилиты |
 
+### Заметки и подводные камни
+* `k.fx` — эффекты игры: `k.fx.pulse(el,color)→stop()` (кольцо-подсказка), `k.fx.hand(from,to?)→{stop()}` (ручка), `k.fx.wiggle(el)`.
+* `k.badge/k.bubble` возвращают элемент — убирайте сами (`el.remove()` / gsap fade). `k.popIn(els)` анимирует scale до 1 — для масштабированных предметов делайте свой `fromTo`.
+* Любой `k.prop`/`k.food` ловит касания, даже с opacity:0: декорациям ставьте `pointer-events:none`, нажимаемое не размещайте вплотную к герою (его квадрат size×size перехватывает тапы).
+* `k.dnd`: `until(placed)` считает только верно поставленные; `homeOnWrong:false` — не возвращать предмет домой автоматически (`onWrong` вызывается уже после старта возврата).
+* `k.choose`: SVG-арт карточек оборачивается в квадрат автоматически; без `correct:true` завершается после первого выбора («предсказание»).
+* Герои после серии `emote` могут «сползти» — `k.cast/k.pyx/k.guest` уже страхуют это.
+
 ### Жесты (gesture.js) — все возвращают Promise и сами подсказывают «ручкой» через ~7 с
 * `k.tapN(el, n, {prompt,host,onTap(i)})` — n тапов по элементу.
 * `k.tapAll(els, {onTap(el,i,left)})` — тапнуть каждый из элементов (лопнуть пузыри, собрать зёрна).

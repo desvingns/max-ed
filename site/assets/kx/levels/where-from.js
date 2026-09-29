@@ -241,13 +241,17 @@ export default defineLevel({
       { id: 'cow', el: cow.el }, { id: 'hen', el: hen.el }, { id: 'hive', el: hiveEl }, { id: 'tree', el: treeEl },
     ]
     let n = 0
+    // реплики идут по очереди, но не держат игру: малыш может нести следующий продукт, пока герой договаривает
+    let chain = Promise.resolve()
+    const speak = fn => { chain = chain.then(() => (k.alive ? fn() : null)).catch(() => {}); return chain }
     const feed = async (it, z, reactFn, lineFn) => {
       const c = k.centerOf(z.el)
       const here = k.centerOf(it.el)
       await k.play(gsap.to(it.el, { x: `+=${c.x - here.x}`, y: `+=${c.y - here.y - 30}`, scale: 0.9, duration: 0.3, ease: 'back.out(1.6)' }))
       k.sparkle(c.x, c.y - 30, 5)
       reactFn?.()
-      await lineFn()
+      speak(lineFn)
+      await k.wait(350)
       await toWagon(it, n++)
     }
     const react = {
@@ -262,11 +266,10 @@ export default defineLevel({
       hive: () => k.tell(chukh, 'hive_ok', 'happy'),
       tree: () => k.tell(chukh, 'tree_ok', 'happy'),
     }
-    const wrongLine = async (z, wh) => {
+    const wrongLine = z => {
       k.sfx('wrong', { vol: 0.5 })
       const who = z.id === 'cow' ? cow : z.id === 'hen' ? hen : chukh
-      who.emote('shake')
-      await k.tell(who, z.id === 'cow' ? 'wrong_cow' : z.id === 'hen' ? 'wrong_hen' : 'wrong_any')
+      speak(async () => { who.emote('shake'); await k.tell(who, z.id === 'cow' ? 'wrong_cow' : z.id === 'hen' ? 'wrong_hen' : 'wrong_any') })
     }
 
     await k.dnd({
@@ -276,6 +279,7 @@ export default defineLevel({
       onWrong: (it, z) => (z ? wrongLine(z) : null),
     })
 
+    await chain
     await k.tell(chukh, 'full1', 'jump')
     await countCargo()
     k.burst(1100, 780, 10)
@@ -338,6 +342,7 @@ export default defineLevel({
       onWrong: (it, z) => (z ? wrongLine(z) : null),
     })
 
+    await chain
     await k.tell(chukh, 'full2', 'jump')
     await countCargo()
     k.burst(1100, 780, 12)

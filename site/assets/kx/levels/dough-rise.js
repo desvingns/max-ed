@@ -228,7 +228,7 @@ export default defineLevel({
       const bg = kind === 'cold'
         ? 'radial-gradient(ellipse at 50% 50%,rgba(140,205,255,.6),rgba(140,205,255,.25) 55%,rgba(140,205,255,0) 75%)'
         : 'radial-gradient(ellipse at 50% 50%,rgba(255,214,90,.42),rgba(255,214,90,.18) 55%,rgba(255,214,90,0) 75%)'
-      const o = k.prop(`<div style="width:100%;height:100%;background:${bg}"></div>`, 800, 560, 1100, 760, { z: 30 })
+      const o = k.prop(`<div style="width:100%;height:100%;background:${bg}"></div>`, 800, 540, 1150, 800, { z: 5 })
       o.style.pointerEvents = 'none'
       k.fromTo(o, { opacity: 0 }, { opacity: 1, duration: 0.5 })
       return o

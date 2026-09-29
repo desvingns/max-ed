@@ -98,7 +98,7 @@ export default defineLevel({
     const lid = pot.querySelector('.lid'), kernels = pot.querySelector('.kernels')
     gs.set(lid, { autoAlpha: 0 }); gs.set(kernels, { autoAlpha: 0 })
     const POT = { x: 720, rim: 298 } // центр и уровень «горлышка» на сцене
-    const lidTap = k.prop('', POT.x, 280, 280, 100, { z: 12 }); lidTap.style.borderRadius = '40px'
+    const lidTap = k.prop('', POT.x, 280, 280, 100, { z: 12 }); lidTap.style.borderRadius = '40px'; lidTap.style.pointerEvents = 'none'
     // прихватка на ручке
     const mitt = document.createElement('div')
     mitt.style.cssText = 'position:absolute;left:240px;top:54px;width:84px;height:106px;transform:rotate(-20deg);z-index:3;pointer-events:none'
@@ -265,7 +265,9 @@ export default defineLevel({
     st.off(0)
     await k.wait(400)
     pyx.emote('point')
+    lidTap.style.pointerEvents = 'auto'
     await k.tapOnEl(lidTap, { prompt: k.key('q_lift'), host: pyx })
+    lidTap.remove()
     k.sfx('whoosh')
     gs.to(lid, { y: -190, x: 120, rotation: 25, svgOrigin: '150 80', autoAlpha: 0, duration: 0.7, ease: 'power2.out' })
     for (let i = 0; i < 6; i++) k.after(i * 90, steamPuff)

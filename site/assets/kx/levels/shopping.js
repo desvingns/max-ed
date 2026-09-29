@@ -274,7 +274,8 @@ export default defineLevel({
           tick(it.id)
           if (counter) { counter.textContent = String(n); gs.fromTo(counter, { scale: 1.4 }, { scale: 1, duration: 0.35, ease: 'back.out(3)' }) }
           k.sparkle(sx, sy - 20, 4)
-          await say(chukh, `n_${it.id}`, 'nod')
+          if (o.countLive) await k.sayNumber(n, chukh)
+          else await say(chukh, `n_${it.id}`, 'nod')
         },
         onWrong: async it => {
           wrong++
@@ -356,12 +357,7 @@ export default defineLevel({
     await stock2
     await say(pyx, 'list2', 'happy')
     await countNote(5, pyx)
-    const r2 = await run(ROUNDS[1], { items: stock2, prompt: 'q_find2', host: pyx })
-    await say(chukh, 'count2', 'happy')
-    for (let i = 0; i < r2.length; i++) {
-      k.fromTo(r2[i].el, { scale: r2[i].sc }, { scale: r2[i].sc * 1.25, duration: 0.25, yoyo: true, repeat: 1, ease: 'sine.inOut' })
-      await k.sayNumber(i + 1, chukh)
-    }
+    const r2 = await run(ROUNDS[1], { items: stock2, prompt: 'q_find2', host: pyx, countLive: true })
     k.burst(BASKET.x, 740, 12)
     await say(pyx, 'done2', 'cheer')
     await packAway(r2)
@@ -381,7 +377,6 @@ export default defineLevel({
     const r3 = await run(ROUNDS[2], { items: stock3, prompt: 'q_find3', host: chukh, memory: true })
     k.burst(BASKET.x, 740, 14)
     await say(pyx, 'done3', 'cheer')
-    await k.praise(chukh)
     await packAway(r3)
     if (counter) gs.to(counter, { scale: 0, duration: 0.3 })
 

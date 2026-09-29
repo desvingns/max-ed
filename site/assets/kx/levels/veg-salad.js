@@ -38,10 +38,31 @@ const pileHtml = (name, n, w) => Array.from({ length: n }, (_, i) =>
 // куда ложатся кусочки в миске (центры, в координатах сцены)
 const SPOTS = [[1210, 606], [1262, 604], [1312, 608], [1180, 632], [1232, 630], [1284, 632], [1336, 634]]
 
+// ── речь и эмоции без наложений ──
+// «Корневые» эмоции героя (ура, смех, прыжок…) нельзя запускать внахлёст: gsap путает SVG-origin'ы, и герой «уезжает» с экрана.
+const ROOT_DUR = { cheer: 1.5, jump: 1.1, laugh: 1.0, dance: 1.8, happy: 0.85, surprised: 1.3, sad: 2.0, spin: 0.9, bow: 1.3 }
+function speech(k) {
+  const busy = new Map()
+  const gate = async (c, d) => {
+    const w = (busy.get(c) ?? 0) - performance.now()
+    if (w > 0) await k.wait(w)
+    busy.set(c, performance.now() + d * 1000)
+  }
+  const emote = async (c, e) => {
+    if (!c || !e) return
+    if (ROOT_DUR[e]) await gate(c, ROOT_DUR[e])
+    if (k.alive) c.emote(e)
+  }
+  const tell = async (c, id, e) => { emote(c, e); await tell(c, id) }
+  const praise = async c => { await gate(c, 1.1); await praise(c) }
+  return { emote, tell, praise }
+}
+
 export default defineLevel({
   id: 'veg-salad',
   async run(k) {
     const g = k.gsap
+    const { emote, tell, praise } = speech(k)
     const FLOOR = k.layout.floorY
     k.kitchenBg()
     const pyx = k.pyx({ x: 230 })
@@ -55,8 +76,8 @@ export default defineLevel({
     }
 
     await k.wait(400)
-    await k.tell(pyx, 'hello', 'wave')
-    await k.tell(busya, 'busya_hi', 'happy')
+    await tell(pyx, 'hello', 'wave')
+    await tell(busya, 'busya_hi', 'happy')
     const bar = stepsBar(k, ['🚿', thumb('knife'), '🥣', thumb('saltShaker'), thumb('oil'), '🥄'])
     bar.set(0)
 
@@ -88,14 +109,14 @@ export default defineLevel({
           const b = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 0 0 3px #9CC3DD"></div>', pos.x + k.rand(-18, 18), pos.y, k.rand(14, 30), k.rand(14, 30), { z: 8 })
           k.to(b, { y: -k.rand(50, 90), x: k.rand(-15, 15), opacity: 0, duration: 0.8, ease: 'power1.out', onComplete: () => b.remove() })
         }
-        if (!tickled && p > 0.4) { tickled = true; k.tell(pyx, 'tickle', 'laugh') }
+        if (!tickled && p > 0.4) { tickled = true; tell(pyx, 'tickle', 'laugh') }
       },
     })
     specks.forEach(s => s.el.remove())
     g.to([tomato, cuc], { y: 0, duration: 0.2 })
     k.sparkle(700, 540, 6); k.sparkle(860, 560, 6)
     k.sfx('sparkle')
-    await k.tell(pyx, 'wash_ok', 'happy')
+    await tell(pyx, 'wash_ok', 'happy')
     fadeAway([back, front, tomato, cuc, washZone])
 
     // ───── 2. режем помидор и огурец ─────
@@ -121,9 +142,9 @@ export default defineLevel({
     await k.wait(500)
     const pileT = k.prop(pileHtml('tomatoSlice', 3, 78), PLATE_TOM.x + (STEP.x * 2) / 2, PLATE_TOM.y + (STEP.y * 2) / 2, 78 + STEP.x * 2, 78 - STEP.y * 2, { z: 0 })
     slicesT.forEach(s => s.remove())
-    await k.tell(pyx, 'red3', 'cheer')
+    await tell(pyx, 'red3', 'cheer')
 
-    await k.tell(pyx, 'cuc_next', 'point')
+    await tell(pyx, 'cuc_next', 'point')
     const cuc2 = k.food('cucumber', 600, 655, 440, { z: 6 })
     k.fromTo(cuc2, { y: -420, rotation: 10, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.6, ease: 'bounce.out' })
     k.sfx('boing', { vol: 0.5 })
@@ -139,7 +160,7 @@ export default defineLevel({
     await k.wait(500)
     const pileC = k.prop(pileHtml('cucumberSlice', 4, 78), PLATE_CUC.x + (STEP.x * 3) / 2, PLATE_CUC.y + (STEP.y * 3) / 2, 78 + STEP.x * 3, 78 - STEP.y * 3, { z: 0 })
     slicesC.forEach(s => s.remove())
-    await k.tell(pyx, 'green4', 'cheer')
+    await tell(pyx, 'green4', 'cheer')
     g.to(board, { opacity: 0, y: 60, duration: 0.4 })
     k.after(450, () => board.remove())
 
@@ -191,8 +212,8 @@ export default defineLevel({
     await k.choose({
       prompt: k.key('q_more'), host: pyx, skill: 'math:more',
       options: [
-        { id: 'red', art: food('tomatoSlice'), color: '#FF5A5F', outcome: async () => { await k.tell(pyx, 'more_no', 'think') } },
-        { id: 'green', art: food('cucumberSlice'), color: '#6BCB77', correct: true, outcome: async () => { k.burst(1250, 520, 8); await k.tell(busya, 'more_ok', 'cheer') } },
+        { id: 'red', art: food('tomatoSlice'), color: '#FF5A5F', outcome: async () => { await tell(pyx, 'more_no', 'think') } },
+        { id: 'green', art: food('cucumberSlice'), color: '#6BCB77', correct: true, outcome: async () => { k.burst(1250, 520, 8); await tell(busya, 'more_ok', 'cheer') } },
       ],
     })
     g.to([b3, b4], { scale: 0, opacity: 0, duration: 0.3 })
@@ -208,7 +229,7 @@ export default defineLevel({
     sprinkle(1250, 530, 14)
     await k.wait(600)
     g.to(shaker, { rotation: 0, y: 0, duration: 0.3, ease: 'back.out(2)' })
-    await k.tell(pyx, 'salt_ok', 'happy')
+    await tell(pyx, 'salt_ok', 'happy')
     fadeAway([shaker], -80)
 
     // ───── 5. ложка масла ─────
@@ -239,13 +260,13 @@ export default defineLevel({
           const d = k.prop('<div style="width:100%;height:100%;border-radius:50%;background:#FFC93C"></div>', 1184 + k.rand(-50, 50), 540, 14, 14, { z: 15 })
           k.to(d, { y: k.rand(60, 120), opacity: 0, duration: 0.6, delay: i * 0.04, onComplete: () => d.remove() })
         }
-        pyx.emote('surprised')
-        await k.tell(pyx, 'oil_over')
+        emote(pyx, 'surprised')
+        await tell(pyx, 'oil_over')
       },
-      onMiss: () => { if (++missed % 2 === 1) k.tell(pyx, 'oil_less') },
+      onMiss: () => { if (++missed % 2 === 1) tell(pyx, 'oil_less') },
     })
     streamOff()
-    await k.tell(pyx, 'oil_ok', 'cheer')
+    await tell(pyx, 'oil_ok', 'cheer')
     // выливаем ложку в салат
     await k.play(g.to(spoonEl, { x: 60, y: 30, duration: 0.4, ease: 'power2.inOut' }))
     g.set(spoonEl, { transformOrigin: '25% 50%' })
@@ -291,18 +312,18 @@ export default defineLevel({
     k.after(450, () => spoon.remove())
     k.sfx('sparkle')
     k.sparkle(1250, 600, 8)
-    await k.tell(pyx, 'stir_ok', 'cheer')
+    await tell(pyx, 'stir_ok', 'cheer')
     bar.done(5)
 
     // ───── угощаем Busya ─────
     const to = k.centerOf(busya.el), from = k.centerOf(bowl)
     k.sfx('crunch')
     await k.play(g.to(bowl, { x: to.x - from.x, y: to.y - from.y - 50, scale: 0.35, opacity: 0, duration: 0.8, ease: 'power2.in' }))
-    busya.emote('happy')
-    await k.tell(busya, 'busya_yum', 'cheer')
+    emote(busya, 'happy')
+    await tell(busya, 'busya_yum', 'cheer')
     k.burst(1400, 700, 10)
-    await k.tell(pyx, 'sum', 'point')
-    await k.tell(busya, 'bye', 'cheer')
+    await tell(pyx, 'sum', 'point')
+    await tell(busya, 'bye', 'cheer')
     k.burst(800, 420, 14)
   },
 })

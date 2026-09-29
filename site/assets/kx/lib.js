@@ -51,6 +51,23 @@ function buildKit(x, def, meta) {
   k.solve = () => { const p = pending; if (!p) return false; try { return !!p.solve() } catch (e) { console.error('[kx solve]', e); return false } }
   k.finished = false
 
+  // ── герои: страховка от «сползания» после серии эмоций ──
+  // Эмоции игры двигают .c-root через svgOrigin и после серии жестов герой может осесть ниже. Когда ни одна эмоция не идёт — сбрасываем.
+  const guardChar = c => {
+    const root = c.part?.('.c-root')
+    if (!root || c.__kxGuard) return c
+    c.__kxGuard = true
+    const orig = c.emote.bind(c)
+    let n = 0
+    c.emote = async t => {
+      n++
+      try { return await orig(t) } finally { if (--n === 0 && k.alive) gsap.set(root, { clearProps: 'transform' }) }
+    }
+    return c
+  }
+  const baseCast = x.cast
+  k.cast = (...a) => guardChar(baseCast(...a))
+
   // ── фон и герои ──
   k.kitchenBg = () => {
     const bg = k.bg(kitchen.background())
@@ -112,7 +129,9 @@ function buildKit(x, def, meta) {
   }
 
   // ── выбор карточкой (обёртка над k.choice эпизода) ──
-  k.choose = async o => {
+  k.choose = async o0 => {
+    // SVG-арт карточки оборачиваем в квадрат: иначе высокие предметы (ложка, половник) вылезают за карточку
+    const o = { ...o0, options: o0.options.map(op => (typeof op.art === 'string' && /^\s*<svg/.test(op.art) ? { ...op, art: `<div style="width:176px;height:176px;display:grid;place-items:center">${op.art}</div>` } : op)) }
     const end = k.waiting('choice', () => {
       const card = [...k.root.querySelectorAll('.ep-card:not(.used)')]
       const opts = o.options

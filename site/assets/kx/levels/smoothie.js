@@ -175,10 +175,12 @@ export default defineLevel({
           await k.tell(kapa, `n_${it.id}`)
         },
       })
+      items.forEach(i => { i.el.style.pointerEvents = 'none' })
       k.to(items.filter(i => i.el.style.opacity !== '0').map(i => i.el), { opacity: 0, y: 60, duration: 0.35, onComplete: () => items.forEach(i => i.el.remove()) })
       k.burst(BL.x, 330, 8)
       await k.tell(kapa, 'color_ok', 'cheer')
     }
+    k.to(wish, { scale: 0, opacity: 0, duration: 0.3, onComplete: () => wish?.remove() })
     await k.tell(kapa, 'rainbow', 'jump')
 
     // ───── 4. блендер: крышка! ─────
@@ -225,8 +227,8 @@ export default defineLevel({
     await k.choose({
       prompt: k.key('q_lid'), host: pyx, skill: 'science:safety',
       options: k.shuffle([
-        { id: 'nolid', art: cardArt(false), color: '#FF5A5F', outcome: async () => { await messy(); await k.tell(pyx, 'nolid_oops', 'shake'); cleanUp(); await k.tell(pyx, 'nolid_why', 'point') } },
-        { id: 'lid', art: cardArt(true), color: '#6BCB77', correct: true, outcome: async () => {
+        { id: 'nolid', art: cardArt(false), color: '#62C6FF', outcome: async () => { await messy(); await k.tell(pyx, 'nolid_oops', 'shake'); cleanUp(); await k.tell(pyx, 'nolid_why', 'point') } },
+        { id: 'lid', art: cardArt(true), color: '#FFB938', correct: true, outcome: async () => {
           lid.style.opacity = '1'
           await k.play(k.gsap.fromTo(lid, { y: -280, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'bounce.out' }))
           k.sfx('clonk')
@@ -339,7 +341,6 @@ export default defineLevel({
     kapa.emote('happy')
     k.to(hue, { v: '+=720', duration: 2.4, ease: 'none', onUpdate: () => { kapa.el.style.filter = `hue-rotate(${hue.v}deg)` } })
     await k.tell(kapa, 'yum')
-    wish?.remove()
     k.burst(1400, 760, 10)
     await k.tell(pyx, 'sum', 'point')
     await k.tell(kapa, 'bye', 'cheer')
