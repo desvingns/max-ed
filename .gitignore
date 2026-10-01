@@ -1,1 +1,4 @@
+node_modules/
+__pycache__/
+tools/chess/.used-keys.json
 /*.png

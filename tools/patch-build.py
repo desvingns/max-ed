@@ -46,7 +46,7 @@ patch(
     world,
     [
         (m.group(0) if m else "", "activities:KXA"),
-        ("var e=4400,", 'import{chapters as KXC,kitchenActivities as KXA,stickers as KXS}from"./kx/registry.js";var e=4400,'),
+        ("var e=4900,", 'import{chapters as KXC,kitchenActivities as KXA,stickers as KXS}from"./kx/registry.js";var e=4900,'),
         ("function i(e){return n.find", "r.push(...KXS);function i(e){return n.find"),
         ("export{i,n,r,e as t}", "export{i,n,r,e as t,KXC as c}"),
     ] if m else [],
